@@ -1,7 +1,7 @@
 saldo = 0
 
 def consulta_saldo():
-    print("O saldo disponivel e: R$",saldo)
+    print("O saldo disponivel é: R$",saldo)
 
 def deposito(entrada):
     saldo = saldo + entrada
