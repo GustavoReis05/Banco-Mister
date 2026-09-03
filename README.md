@@ -1,4 +1,4 @@
-# 🏦 Banco Miste
+# 🏦 Banco Mister
 
 > Solução para gestão e processamento bancário simplificado, com foco em segurança, consistência transacional e regras de negócio essenciais.
 
