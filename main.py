@@ -1,43 +1,42 @@
-from cliente import cadastro_cliente
-from conta import operacao
+import agencia
+import cliente
+import conta
 
-print("=================================")
-print("= SEJA BEM VINDO O BANCO MISTER =")
-print("=================================")
-print("\n")
+lista_clientes = []
+lista_agencias = []
+lista_contas = []
 
-print("Informe seus dados para criarmos a sua conta: \n")
+def menu_principal():
 
+    while True:
+        print("\n=== BANCO MISTER ===")
+        print("1 - Cadastrar Cliente")
+        print("2 - Cadastrar Agência")
+        print("3 - Cadastrar Conta")
+        print("4 - Listar Clientes")
+        print("5 - Listar Agências")
+        print("6 - Listar Contas")
+        print("7 - Sacar")
+        print("8 - Depositar")
+        print("9 - Transferir")
+        print("10 - Consultar Saldo")
+        print("11 - Relatório: Montante Total da Agência")
+        print("12 - Relatório: Montante Total do Banco")
+        print("0 - Sair e Salvar")
 
-cliente = cadastro_cliente()
+        opcao = input("\nEscolha uma opção: ")
 
+        if opcao == "1":
+            novo_cliente = cliente.cadastrar_cliente()
+            if novo_cliente:
+                lista_clientes.append(novo_cliente)
+                print(novo_cliente)
 
-saldo = 0
-
-"""A seguir, está a parte de execução das operações disponiveis. 
-Como não é permitido o uso de estruturas de repetição, coloquei um numero de operaçoes que julguei valido"""
-
-print(f"{cliente}, VOCÊ TERÁ DIREITO A 5 OPERAÇÕES INICIAIS.\n")
-print("Selecione uma das operações e aproveite a sua nova conta: \n")
-
-saldo = operacao(saldo)
-print("\n")
-
-print("Selecione a segunda operação:\n")
-saldo = operacao(saldo)
-print("\n")
-
-print("Selecione a terceira operação:\n")
-saldo = operacao(saldo)
-print("\n")
-
-print("Selecione a terceira operação:\n")
-saldo = operacao(saldo)
-print("\n")
-
-print("Selecione a terceira operação:\n")
-saldo = operacao(saldo)
-print("\n")
+        elif opcao == "2":
+            nova_agencia = agencia.cadastrar_agencia()
+            if nova_agencia:
+                lista_agencias.append(nova_agencia)
+                print(nova_agencia)
 
 
-print("Ao final das operações, o saldo atual é de: R$",saldo)
+menu_principal()
