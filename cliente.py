@@ -29,3 +29,9 @@ def cadastrar_cliente():
         return cpf, nome, data_nascimento, numero_telefone
         exit()
 
+def procurar_cliente(lista_clientes, cpf):
+    """Busca um cliente na lista pelo cpf"""
+    for cliente in lista_clientes:
+        if cliente[0] == cpf:
+            return cliente
+    return None

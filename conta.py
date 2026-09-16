@@ -1,30 +1,18 @@
-"""Implantação de um menu para escolha da operação desejada"""
-def operacao(saldo):
-    menu_inicial = int(input("1 - CONSULTAR SALDO\n" 
-                            "2 - REALIZAR DEPÓSITO\n"
-                            "3 - REALIZAR SAQUE\n"
-                            "4"))
-    
-    if menu_inicial == 1:
-        print("O saldo disponivel é: R$",saldo)
-        return saldo
-    
-    elif menu_inicial == 2:
-        valor_dep = float(input("Valor do depósito: R$"))
-        saldo = saldo + valor_dep
-        print("Deposito realizado com sucesso!")
-        return saldo 
-    
-    elif menu_inicial == 3:         
-        valor_saque = float(input("Valor do saque: R$"))
+from agencia import procurar_agencia
+from cliente import procurar_cliente
 
-        if valor_saque > saldo:
-            print("Valor indisponivel")
-            return saldo
-        else:
-            saldo = saldo - valor_saque
-            print("SAQUE REALIZADO COM SUCESSO!")
-            return saldo 
-    else:
-        print("OPERAÇÃO INVALIDA.")
-        return saldo
+'''O cadastro de conta exige um cliente cadastrado anteriormente'''
+def cadastrar_conta(lista_clientes, lista_agencias, lista_contas):
+    cpf = input("CPF do cliente: ")
+    if not procurar_cliente(lista_clientes, cpf):
+        print("Cliente não encontrado!")
+        return None
+
+    agencia_cod = input("Código da agência: ")
+    if not procurar_agencia(lista_agencias, agencia_cod):
+        print("Agência não encontrada!")
+        return None
+
+    numero = str(input("Insira o numero da conta: "))
+    print(f"Conta {numero} criada com sucesso!")
+    return (numero, cpf, agencia_cod, 0.0)

@@ -38,5 +38,10 @@ def menu_principal():
                 lista_agencias.append(nova_agencia)
                 print(nova_agencia)
 
+        elif opcao == "3":
+            nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias, lista_contas)
+            if nova_conta:
+                lista_contas.append(nova_conta)
+
 
 menu_principal()
