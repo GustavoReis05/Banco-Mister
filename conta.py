@@ -2,7 +2,8 @@
 def operacao(saldo):
     menu_inicial = int(input("1 - CONSULTAR SALDO\n" 
                             "2 - REALIZAR DEPÓSITO\n"
-                            "3 - REALIZAR SAQUE\n"))
+                            "3 - REALIZAR SAQUE\n"
+                            "4"))
     
     if menu_inicial == 1:
         print("O saldo disponivel é: R$",saldo)
