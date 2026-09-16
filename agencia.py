@@ -2,8 +2,9 @@ def cadastrar_agencia():
     """Solicita os dados da agência e retorna uma tupla."""
     codigo = input("Código da Agência: \n")
     nome = input("Nome da Agência: \n")
+    cidade_e_estado = input("Cidade e Estado onde a Agência é Localizada: \n")
 
-    agencia = (codigo, nome)
+    agencia = (codigo, nome, cidade_e_estado)
     print("AGÊNCIA CADASTRADA COM SUCESSO!")
     return agencia
 
