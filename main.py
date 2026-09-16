@@ -42,6 +42,29 @@ def menu_principal():
             nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias, lista_contas)
             if nova_conta:
                 lista_contas.append(nova_conta)
+                
+        elif opcao == "4":
+            if not lista_clientes:
+                print("\nNenhum cliente cadastrado.")
+            else:
+                print("\n=== LISTA DE CLIENTES ===")
+                for i in range(len(lista_clientes)):
+                    print(f"{i + 1}. {lista_clientes[i]}")
 
+        elif opcao == "5":
+            if not lista_agencias:
+                print("\nNenhuma agência cadastrada.")
+            else:
+                print("\n=== LISTA DE AGÊNCIAS ===")
+                for i in range(len(lista_agencias)):
+                    print(f"{i + 1}. {lista_agencias[i]}")
+
+        elif opcao == "6":
+            if not lista_contas:
+                print("\nNenhuma conta cadastrada.")
+            else:
+                print("\n=== LISTA DE CONTAS ===")
+                for i in range(len(lista_contas)):
+                    print(f"{i + 1}. {lista_contas[i]}")
 
 menu_principal()
