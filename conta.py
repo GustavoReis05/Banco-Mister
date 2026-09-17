@@ -16,7 +16,7 @@ def cadastrar_conta(lista_clientes, lista_agencias):
         print("Agência não encontrada!")
         return None
 
-    numero_conta = int(input("Digite o numero da conta: "))
+    numero_conta = input("Digite o numero da conta: ")
     print(f"Conta {numero_conta} criada com sucesso!")
     return (numero_conta, cpf, agencia_cod, 0.0)
 
