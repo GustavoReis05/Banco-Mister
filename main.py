@@ -6,12 +6,12 @@ lista_clientes = []
 lista_agencias = []
 lista_contas = []
 
+
+
 def menu_principal():
     # Carrega os dados persistidos na inicialização
     conta.carregar_dados_json(lista_clientes, lista_agencias, lista_contas)
 
-
-def menu_principal():
 
     while True:
         print("\n=== BANCO MISTER ===")
