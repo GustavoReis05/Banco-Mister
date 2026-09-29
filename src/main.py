@@ -6,14 +6,10 @@ lista_clientes = []
 lista_agencias = []
 lista_contas = []
 
+
 def menu_principal():
-
-
-    # Carregando os dados salvos
+    # Carrega os dados persistidos na inicialização
     conta.carregar_dados_json(lista_clientes, lista_agencias, lista_contas)
-
-
-def menu_principal():
 
     while True:
         print("\n=== BANCO MISTER ===")
@@ -29,6 +25,7 @@ def menu_principal():
         print("10 - Consultar Saldo")
         print("11 - Relatório: Montante Total da Agência")
         print("12 - Relatório: Montante Total do Banco")
+        print("13 - Aplicar Rendimento da Poupança")
         print("0 - Sair e Salvar")
 
         opcao = input("\nEscolha uma opção: ")
@@ -49,7 +46,7 @@ def menu_principal():
             nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias)
             if nova_conta:
                 lista_contas.append(nova_conta)
-                
+
         elif opcao == "4":
             if not lista_clientes:
                 print("\nNenhum cliente cadastrado.")
@@ -67,12 +64,7 @@ def menu_principal():
                     print(f"{i + 1}. {lista_agencias[i]}")
 
         elif opcao == "6":
-            if not lista_contas:
-                print("\nNenhuma conta cadastrada.")
-            else:
-                print("\n=== LISTA DE CONTAS ===")
-                for i in range(len(lista_contas)):
-                    print(f"{i + 1}. {lista_contas[i]}")
+            conta.listar_contas(lista_contas)
 
         elif opcao == "7":
             conta.sacar(lista_contas)
@@ -88,11 +80,12 @@ def menu_principal():
 
         elif opcao == "11":
             codigo = input("Digite o código da agência: ").strip()
-            agencia_econtrada= agencia.procurar_agencia(lista_agencias, codigo)
-            if agencia_econtrada:
+            agencia_encontrada = agencia.procurar_agencia(lista_agencias, codigo)
+            if agencia_encontrada:
                 total = conta.calcular_montante_agencia(lista_contas, codigo)
                 print(
-                    f"Montante Total na Agência {agencia_econtrada[0]} ({agencia_econtrada[1]}): R$ {total:.2f}"
+                    f"Montante Total na Agência {agencia_encontrada[0]} "
+                    f"({agencia_encontrada[1]}): R$ {total:.2f}"
                 )
             else:
                 print("Agência não encontrada.")
@@ -100,6 +93,9 @@ def menu_principal():
         elif opcao == "12":
             total_banco = conta.calcular_montante_banco(lista_contas)
             print(f"Montante Total no Banco Mister: R$ {total_banco:.2f}")
+
+        elif opcao == "13":
+            conta.aplicar_rendimento(lista_contas)
 
         elif opcao == "0":
             # Salva no arquivo json antes de encerrar
@@ -109,7 +105,9 @@ def menu_principal():
             print("Dados salvos em banco_dados.json com sucesso!")
             print("Saindo do programa...")
             break
+
         else:
             print("Opção inválida! Tente novamente.")
+
 
 menu_principal()
