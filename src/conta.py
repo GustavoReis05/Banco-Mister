@@ -2,7 +2,28 @@ import json
 from agencia import procurar_agencia
 from cliente import procurar_cliente
 
-# Estrutura da Tupla: (numero_conta, cpf_cliente, codigo_agencia, saldo)
+# Estrutura da Tupla: (numero_conta, cpf_cliente, codigo_agencia, saldo, tipo)
+
+TIPOS_CONTA = {
+    "1": "poupança",
+    "2": "corrente",
+    "3": "salário",
+}
+
+# A poupança está rendendo a Taxa Selic, que está a 13,75% ao ano
+TAXA_ANUAL_POUPANCA = 0.1375
+
+
+def escolher_tipo_conta():
+    while True:
+        print("\nTipo de conta:")
+        for codigo, nome in TIPOS_CONTA.items():
+            print(f"  {codigo} - {nome.capitalize()}")
+
+        opcao = input("Escolha o tipo: ").strip()
+        if opcao in TIPOS_CONTA:
+            return TIPOS_CONTA[opcao]
+        print("Opção inválida! Tente novamente.")
 
 
 def cadastrar_conta(lista_clientes, lista_agencias):
@@ -17,8 +38,10 @@ def cadastrar_conta(lista_clientes, lista_agencias):
         return None
 
     numero_conta = input("Digite o numero da conta: ")
-    print(f"Conta {numero_conta} criada com sucesso!")
-    return (numero_conta, cpf, agencia_cod, 0.0)
+    tipo = escolher_tipo_conta()
+
+    print(f"Conta {tipo} {numero_conta} criada com sucesso!")
+    return (numero_conta, cpf, agencia_cod, 0.0, tipo)
 
 
 def procurar_conta(lista_contas, numero):
@@ -31,7 +54,7 @@ def procurar_conta(lista_contas, numero):
 def atualizar_saldo(lista_contas, numero, novo_saldo):
     for i, c in enumerate(lista_contas):
         if c[0] == numero:
-            lista_contas[i] = (c[0], c[1], c[2], novo_saldo)
+            lista_contas[i] = (c[0], c[1], c[2], novo_saldo, *c[4:])
             break
 
 
@@ -86,12 +109,53 @@ def consultar_saldo(lista_contas):
     )
 
 
+def aplicar_rendimento(lista_contas):
+    entrada = input("Quantos meses de rendimento? (Enter = 12 meses, 13,75% cheio): ").strip()
+
+    if entrada == "":
+        meses = 12
+    else:
+        try:
+            meses = int(entrada)
+        except ValueError:
+            return print("Digite um número inteiro de meses.")
+
+    if meses <= 0:
+        return print("O número de meses deve ser maior que zero.")
+
+    fator = (1 + TAXA_ANUAL_POUPANCA) ** (meses / 12)
+    contas_atualizadas = 0
+
+    for i, c in enumerate(lista_contas):
+        tipo = c[4] if len(c) > 4 else None
+
+        if tipo != "poupança":
+            print(f"Conta {c[0]}: ignorada (tipo: {tipo or 'não informado'}).")
+            continue
+
+        saldo_antigo = c[3]
+        novo_saldo = round(saldo_antigo * fator, 2)
+        lista_contas[i] = (c[0], c[1], c[2], novo_saldo, *c[4:])
+        contas_atualizadas += 1
+        print(
+            f"Conta {c[0]}: R$ {saldo_antigo:.2f} -> R$ {novo_saldo:.2f} "
+            f"(+R$ {novo_saldo - saldo_antigo:.2f})"
+        )
+
+    print(
+        f"\nRendimento de {meses} mês(es) aplicado em "
+        f"{contas_atualizadas} conta(s) poupança."
+    )
+
+
 def listar_contas(lista_contas):
     if not lista_contas:
         return print("Nenhuma conta cadastrada.")
     for c in lista_contas:
+        tipo = c[4] if len(c) > 4 else "não informado"
         print(
-            f"Conta: {c[0]} | CPF: {c[1]} | Agência: {c[2]} | Saldo: R$ {c[3]:.2f}"
+            f"Conta: {c[0]} | {tipo.capitalize()} | CPF: {c[1]} | "
+            f"Agência: {c[2]} | Saldo: R$ {c[3]:.2f}"
         )
 
 
@@ -99,19 +163,18 @@ def calcular_montante_agencia(lista_contas, codigo_agencia):
     montante_total = 0.0
     for conta in lista_contas:
         if conta[2] == codigo_agencia:
-            montante_total += conta[3]  
+            montante_total += conta[3]
     return montante_total
 
 
 def calcular_montante_banco(lista_contas):
     montante_total = 0.0
     for conta in lista_contas:
-        montante_total += conta[3] 
+        montante_total += conta[3]
     return montante_total
 
 
-
-# Implementando o metodo de selvamento em JSON
+# Implementando o metodo de salvamento em JSON
 def salvar_dados_json(lista_clientes, lista_agencias, lista_contas):
     dados = {
         "clientes": lista_clientes,
