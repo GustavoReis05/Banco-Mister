@@ -23,7 +23,7 @@ def cadastrar_cliente():
 
         if confirmacao == 1:
             print("CLIENTE CADASTRADO COM SUCESSO!")
-            return cpf, nome, data_nascimento, numero_telefone                 
+            return {'cpf': cpf, 'nome': nome, 'data_nascimento': data_nascimento, 'numero_telefone':numero_telefone}                 
 
         elif confirmacao == 2:
             print("CADASTRE SEUS DADOS NOVAMENTE!")
