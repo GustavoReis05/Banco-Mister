@@ -5,14 +5,15 @@ import conta
 lista_clientes = []
 lista_agencias = []
 lista_contas = []
-    
-
 
 def menu_principal():
 
 
     # Carregando os dados salvos
     conta.carregar_dados_json(lista_clientes, lista_agencias, lista_contas)
+
+
+def menu_principal():
 
     while True:
         print("\n=== BANCO MISTER ===")
