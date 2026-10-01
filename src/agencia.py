@@ -1,18 +1,21 @@
 def cadastrar_agencia():
-    """Solicita os dados da agência e retorna uma tupla."""
-    codigo = input("Código da Agência: \n").strip()
-    nome = input("Nome da Agência: \n")
+    """Solicita os dados da agência e retorna um diconário."""
+    codigo_agencia = input("Código da Agência: \n").strip()
+    nome_agencia = input("Nome da Agência: \n")
     cidade_e_estado = input("Cidade e Estado onde a Agência é Localizada: \n")
 
-    agencia = (codigo, nome, cidade_e_estado)
     print("AGÊNCIA CADASTRADA COM SUCESSO!")
-    return agencia
+    return {
+        "codigo_agencia": codigo_agencia,
+        "nome_agencia": nome_agencia,
+        "cidade_e_estado": cidade_e_estado
+    }
 
 
 def procurar_agencia(lista_agencias, codigo):
     """Consulta se uma agência está contida na lista de agências."""
     for agencia in lista_agencias:
-        if agencia[0] == codigo:
+        if agencia["codigo_agencia"] == codigo:
             return agencia
     return None
 
@@ -25,4 +28,4 @@ def listar_agencias(lista_agencias):
 
     print("--- LISTA DE AGÊNCIAS ---")
     for agencia in lista_agencias:
-        print(agencia[0], agencia[1])
+        print(agencia["codigo_agencia"], agencia["nome_agencia"], agencia["cidade_e_estado"])
