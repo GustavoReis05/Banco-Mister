@@ -33,6 +33,6 @@ def cadastrar_cliente():
 def procurar_cliente(lista_clientes, cpf):
     """Busca um cliente pelo cpf"""
     for cliente in lista_clientes:
-        if cliente[0] == cpf:
+        if cliente['cpf'] == cpf:
             return cliente
     return None
