@@ -14,6 +14,7 @@ TIPOS_CONTA = {
 TAXA_ANUAL_POUPANCA = 0.1375
 
 
+# Seleção do tipo de conta (Salário, Poupança, Corrente)
 def escolher_tipo_conta():
     while True:
         print("\nTipo de conta:")
@@ -26,11 +27,18 @@ def escolher_tipo_conta():
         print("Opção inválida! Tente novamente.")
 
 
+# Função de cadastro de conta. Dados lidos
+'''Essa função consulta se o cliente e a aencia já estão cadastrados. 
+Se estiverem cadastrados, ela lê o numero da conta e o tipo'''
 def cadastrar_conta(lista_clientes, lista_agencias):
-    cpf = input("CPF do cliente: ")
-    if not procurar_cliente(lista_clientes, cpf):
+    termo_busca = input("CPF ou Nome do cliente: ").strip().lower()
+    cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
+
+    if not cliente_encontrado:
         print("Cliente não encontrado!")
         return None
+
+    cpf = cliente_encontrado['cpf']
 
     agencia_cod = input("Código da agência: ")
     if not procurar_agencia(lista_agencias, agencia_cod):
@@ -38,22 +46,22 @@ def cadastrar_conta(lista_clientes, lista_agencias):
         return None
 
     numero_conta = input("Digite o numero da conta: ")
-    tipo = escolher_tipo_conta()
+    tipo_conta = escolher_tipo_conta()
 
-    print(f"Conta {tipo} {numero_conta} criada com sucesso!")
-    return (numero_conta, cpf, agencia_cod, 0.0, tipo)
+    print(f"Conta {tipo_conta} - {numero_conta} criada com sucesso!")
+    return {'numero_conta': numero_conta, 'cpf': cpf, 'agencia_cod': agencia_cod, 'saldo_conta': 0.0, 'tipo': tipo_conta}
 
 
 def procurar_conta(lista_contas, numero):
     for c in lista_contas:
-        if c[0] == numero:
+        if c['numero_conta'] == numero:
             return c
     return None
 
 
 def atualizar_saldo(lista_contas, numero, novo_saldo):
     for i, c in enumerate(lista_contas):
-        if c[0] == numero:
+        if c['numero_conta'] == numero:
             lista_contas[i] = (c[0], c[1], c[2], novo_saldo, *c[4:])
             break
 
@@ -182,15 +190,16 @@ def salvar_dados_json(lista_clientes, lista_agencias, lista_contas):
         "contas": lista_contas,
     }
     with open("banco_dados.json", "w", encoding="utf-8") as f:
-        json.dump(dados, f, indent=4)
+        json.dump(dados, f, indent=4, ensure_ascii=False)
 
 
 def carregar_dados_json(lista_clientes, lista_agencias, lista_contas):
     try:
         with open("banco_dados.json", "r", encoding="utf-8") as f:
             dados = json.load(f)
-            lista_clientes.extend(tuple(c) for c in dados.get("clientes", []))
-            lista_agencias.extend(tuple(a) for a in dados.get("agencias", []))
-            lista_contas.extend(tuple(c) for c in dados.get("contas", []))
+            # Agora ele carrega a lista de dicionários diretamente
+            lista_clientes.extend(dados.get("clientes", []))
+            lista_agencias.extend(dados.get("agencias", []))
+            lista_contas.extend(dados.get("contas", []))
     except FileNotFoundError:
         pass
