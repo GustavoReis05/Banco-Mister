@@ -60,9 +60,9 @@ def procurar_conta(lista_contas, numero):
 
 
 def atualizar_saldo(lista_contas, numero, novo_saldo):
-    for i, c in enumerate(lista_contas):
-        if c['numero_conta'] == numero:
-            lista_contas[i] = (c[0], c[1], c[2], novo_saldo, *c[4:])
+    for conta in lista_contas:
+        if conta['numero_conta'] == numero:
+            conta['saldo_conta'] = novo_saldo
             break
 
 
