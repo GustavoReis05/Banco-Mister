@@ -2,7 +2,8 @@ import json
 from agencia import procurar_agencia
 from cliente import procurar_cliente
 
-# Estrutura da Tupla: (numero_conta, cpf_cliente, codigo_agencia, saldo, tipo)
+# Estrutura da conta (dicionário):
+# {'numero_conta', 'cpf', 'agencia_cod', 'saldo_conta', 'tipo'}
 
 TIPOS_CONTA = {
     "1": "poupança",
@@ -10,8 +11,33 @@ TIPOS_CONTA = {
     "3": "salário",
 }
 
+# Operações permitidas para cada tipo de conta
+OPERACOES_PERMITIDAS = {
+    "poupança": {"sacar", "depositar", "transferir"},
+    "corrente": {"sacar", "depositar", "transferir"},
+    "salário": {"sacar", "depositar"},  # salário não pode transferir
+}
+
 # A poupança está rendendo a Taxa Selic, que está a 13,75% ao ano
 TAXA_ANUAL_POUPANCA = 0.1375
+
+
+def operacao_permitida(conta, operacao):
+    """Verifica se o tipo da conta permite a operação."""
+    tipo = conta.get("tipo")
+    if operacao in OPERACOES_PERMITIDAS.get(tipo, set()):
+        return True
+    print(f"A conta {conta['numero_conta']} ({tipo}) não pode realizar: {operacao}.")
+    return False
+
+
+def ler_valor(mensagem):
+    """Lê um valor em reais. Retorna None se for inválido."""
+    try:
+        return float(input(mensagem).replace(",", "."))
+    except ValueError:
+        print("Valor inválido! Digite apenas números.")
+        return None
 
 
 # Seleção do tipo de conta (Salário, Poupança, Corrente)
@@ -27,9 +53,9 @@ def escolher_tipo_conta():
         print("Opção inválida! Tente novamente.")
 
 
-# Função de cadastro de conta. Dados lidos
-'''Essa função consulta se o cliente e a aencia já estão cadastrados. 
-Se estiverem cadastrados, ela lê o numero da conta e o tipo'''
+# Função de cadastro de conta.
+# Consulta se o cliente e a agência já estão cadastrados.
+# Se estiverem, lê o número da conta e o tipo.
 def cadastrar_conta(lista_clientes, lista_agencias):
     termo_busca = input("CPF ou Nome do cliente: ").strip().lower()
     cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
@@ -38,87 +64,113 @@ def cadastrar_conta(lista_clientes, lista_agencias):
         print("Cliente não encontrado!")
         return None
 
-    cpf = cliente_encontrado['cpf']
+    cpf = cliente_encontrado["cpf"]
 
-    agencia_cod = input("Código da agência: ")
+    agencia_cod = input("Código da agência: ").strip()
     if not procurar_agencia(lista_agencias, agencia_cod):
         print("Agência não encontrada!")
         return None
 
-    numero_conta = input("Digite o numero da conta: ")
+    numero_conta = input("Digite o numero da conta: ").strip()
     tipo_conta = escolher_tipo_conta()
 
     print(f"Conta {tipo_conta} - {numero_conta} criada com sucesso!")
-    return {'numero_conta': numero_conta, 'cpf': cpf, 'agencia_cod': agencia_cod, 'saldo_conta': 0.0, 'tipo': tipo_conta}
+    return {
+        "numero_conta": numero_conta,
+        "cpf": cpf,
+        "agencia_cod": agencia_cod,
+        "saldo_conta": 0.0,
+        "tipo": tipo_conta,
+    }
 
 
 def procurar_conta(lista_contas, numero):
     for c in lista_contas:
-        if c['numero_conta'] == numero:
+        if c["numero_conta"] == numero:
             return c
     return None
 
 
 def atualizar_saldo(lista_contas, numero, novo_saldo):
     for conta in lista_contas:
-        if conta['numero_conta'] == numero:
-            conta['saldo_conta'] = novo_saldo
+        if conta["numero_conta"] == numero:
+            conta["saldo_conta"] = novo_saldo
             break
 
 
 def sacar(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: "))
+    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
     if not c:
         return print("Conta não encontrada!")
+    if not operacao_permitida(c, "sacar"):
+        return
 
-    valor = float(input("Valor do saque: R$ "))
-    if 0 < valor <= c[3]:
-        atualizar_saldo(lista_contas, c[0], c[3] - valor)
+    valor = ler_valor("Valor do saque: R$ ")
+    if valor is None:
+        return
+
+    if 0 < valor <= c["saldo_conta"]:
+        atualizar_saldo(lista_contas, c["numero_conta"], c["saldo_conta"] - valor)
         print(f"Saque de R$ {valor:.2f} realizado!")
     else:
         print("Valor inválido ou saldo insuficiente.")
 
 
 def depositar(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: "))
+    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
     if not c:
         return print("Conta não encontrada!")
+    if not operacao_permitida(c, "depositar"):
+        return
 
-    valor = float(input("Valor do depósito: R$ "))
+    valor = ler_valor("Valor do depósito: R$ ")
+    if valor is None:
+        return
+
     if valor > 0:
-        atualizar_saldo(lista_contas, c[0], c[3] + valor)
+        atualizar_saldo(lista_contas, c["numero_conta"], c["saldo_conta"] + valor)
         print(f"Depósito de R$ {valor:.2f} realizado!")
     else:
         print("Valor inválido.")
 
 
 def transferir(lista_contas):
-    origem = procurar_conta(lista_contas, input("Número da Conta Origem: "))
-    destino = procurar_conta(lista_contas, input("Número da Conta Destino: "))
+    origem = procurar_conta(lista_contas, input("Número da Conta Origem: ").strip())
+    if not origem:
+        return print("Conta de origem não encontrada!")
+    if not operacao_permitida(origem, "transferir"):
+        return
 
-    if not origem or not destino:
-        return print("Conta de origem ou destino não encontrada!")
+    destino = procurar_conta(lista_contas, input("Número da Conta Destino: ").strip())
+    if not destino:
+        return print("Conta de destino não encontrada!")
+    if origem["numero_conta"] == destino["numero_conta"]:
+        return print("A conta de origem e a de destino devem ser diferentes.")
 
-    valor = float(input("Valor da transferência: R$ "))
-    if 0 < valor <= origem[3]:
-        atualizar_saldo(lista_contas, origem[0], origem[3] - valor)
-        atualizar_saldo(lista_contas, destino[0], destino[3] + valor)
+    valor = ler_valor("Valor da transferência: R$ ")
+    if valor is None:
+        return
+
+    if 0 < valor <= origem["saldo_conta"]:
+        atualizar_saldo(lista_contas, origem["numero_conta"], origem["saldo_conta"] - valor)
+        atualizar_saldo(lista_contas, destino["numero_conta"], destino["saldo_conta"] + valor)
         print("Transferência realizada com sucesso!")
     else:
         print("Saldo insuficiente ou valor inválido.")
 
 
 def consultar_saldo(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: "))
-    print(
-        f"Saldo da Conta {c[0]}: R$ {c[3]:.2f}"
-        if c
-        else "Conta não encontrada!"
-    )
+    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
+    if c:
+        print(f"Saldo da Conta {c['numero_conta']}: R$ {c['saldo_conta']:.2f}")
+    else:
+        print("Conta não encontrada!")
 
 
 def aplicar_rendimento(lista_contas):
-    entrada = input("Quantos meses de rendimento? (Enter = 12 meses, 13,75% cheio): ").strip()
+    entrada = input(
+        "Quantos meses de rendimento? (Enter = 12 meses, 13,75% cheio): "
+    ).strip()
 
     if entrada == "":
         meses = 12
@@ -134,19 +186,20 @@ def aplicar_rendimento(lista_contas):
     fator = (1 + TAXA_ANUAL_POUPANCA) ** (meses / 12)
     contas_atualizadas = 0
 
-    for i, c in enumerate(lista_contas):
-        tipo = c[4] if len(c) > 4 else None
-
-        if tipo != "poupança":
-            print(f"Conta {c[0]}: ignorada (tipo: {tipo or 'não informado'}).")
+    for c in lista_contas:
+        if c.get("tipo") != "poupança":
             continue
 
-        saldo_antigo = c[3]
+        saldo_antigo = c["saldo_conta"]
+        if saldo_antigo <= 0:
+            print(f"Conta {c['numero_conta']}: saldo zerado, deposite antes para render.")
+            continue
+
         novo_saldo = round(saldo_antigo * fator, 2)
-        lista_contas[i] = (c[0], c[1], c[2], novo_saldo, *c[4:])
+        c["saldo_conta"] = novo_saldo
         contas_atualizadas += 1
         print(
-            f"Conta {c[0]}: R$ {saldo_antigo:.2f} -> R$ {novo_saldo:.2f} "
+            f"Conta {c['numero_conta']}: R$ {saldo_antigo:.2f} -> R$ {novo_saldo:.2f} "
             f"(+R$ {novo_saldo - saldo_antigo:.2f})"
         )
 
@@ -160,25 +213,25 @@ def listar_contas(lista_contas):
     if not lista_contas:
         return print("Nenhuma conta cadastrada.")
     for c in lista_contas:
-        tipo = c[4] if len(c) > 4 else "não informado"
         print(
-            f"Conta: {c[0]} | {tipo.capitalize()} | CPF: {c[1]} | "
-            f"Agência: {c[2]} | Saldo: R$ {c[3]:.2f}"
+            f"Conta: {c['numero_conta']} | {c['tipo'].capitalize()} | "
+            f"CPF: {c['cpf']} | Agência: {c['agencia_cod']} | "
+            f"Saldo: R$ {c['saldo_conta']:.2f}"
         )
 
 
 def calcular_montante_agencia(lista_contas, codigo_agencia):
     montante_total = 0.0
     for conta in lista_contas:
-        if conta[2] == codigo_agencia:
-            montante_total += conta[3]
+        if conta["agencia_cod"] == codigo_agencia:
+            montante_total += conta["saldo_conta"]
     return montante_total
 
 
 def calcular_montante_banco(lista_contas):
     montante_total = 0.0
     for conta in lista_contas:
-        montante_total += conta[3]
+        montante_total += conta["saldo_conta"]
     return montante_total
 
 
@@ -197,7 +250,6 @@ def carregar_dados_json(lista_clientes, lista_agencias, lista_contas):
     try:
         with open("banco_dados.json", "r", encoding="utf-8") as f:
             dados = json.load(f)
-            # Agora ele carrega a lista de dicionários diretamente
             lista_clientes.extend(dados.get("clientes", []))
             lista_agencias.extend(dados.get("agencias", []))
             lista_contas.extend(dados.get("contas", []))
