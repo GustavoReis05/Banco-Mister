@@ -37,8 +37,14 @@ def cadastrar_cliente():
 
 
 def procurar_cliente(lista_clientes, termo_busca):
-    """Busca um cliente pelo cpf ou nome"""
+    """Busca um cliente pelo cpf ou nome (ignora maiúsculas e pontuação do CPF)"""
+    termo = termo_busca.strip().lower()
+    termo_cpf = termo.replace(".", "").replace("-", "")
+
     for cliente in lista_clientes:
-        if cliente['cpf'] == termo_busca or cliente['nome'] == termo_busca:
+        cpf = cliente["cpf"].replace(".", "").replace("-", "")
+        nome = cliente["nome"].strip().lower()
+
+        if cpf == termo_cpf or nome == termo:
             return cliente
     return None
