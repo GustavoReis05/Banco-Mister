@@ -30,7 +30,7 @@ def menu_principal():
         opcao = input("\nEscolha uma opção: ").strip()
 
         if opcao == "1":
-            novo_cliente = cliente.cadastrar_cliente()
+            novo_cliente = cliente.cadastrar_cliente(lista_clientes)
             if novo_cliente:
                 lista_clientes.append(novo_cliente)
                 print("Cliente adicionado à memória.")
