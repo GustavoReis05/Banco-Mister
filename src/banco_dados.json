@@ -1,0 +1,39 @@
+{
+    "clientes": [
+        {
+            "cpf": "529.982.247-25",
+            "nome": "Carlos Silva",
+            "data_nascimento": "15/05/1985",
+            "numero_telefone": "11988887777"
+        },
+        {
+            "cpf": "111.444.777-05",
+            "nome": "Ana Souza",
+            "data_nascimento": "20/10/1992",
+            "numero_telefone": "21977776666"
+        }
+    ],
+    "agencias": [
+        {
+            "codigo_agencia": "001",
+            "nome_agencia": "Agência Central",
+            "cidade_estado": "São Paulo - SP"
+        }
+    ],
+    "contas": [
+        {
+            "numero_conta": "1001",
+            "cpf": "529.982.247-25",
+            "agencia_cod": "001",
+            "saldo_conta": 700.0,
+            "tipo": "corrente"
+        },
+        {
+            "numero_conta": "2001",
+            "cpf": "111.444.777-05",
+            "agencia_cod": "001",
+            "saldo_conta": 796.25,
+            "tipo": "poupança"
+        }
+    ]
+}
