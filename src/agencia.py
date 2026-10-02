@@ -1,6 +1,12 @@
-def cadastrar_agencia():
+def cadastrar_agencia(lista_agencias):
     """Solicita os dados da agência e retorna um dicionário."""
-    codigo = input("Código da Agência: \n").strip()
+    while True:
+        codigo = input("Código da Agência: \n").strip()
+        if lista_agencias and procurar_agencia(lista_agencias, codigo):
+            print("Erro: Já existe uma agência com esse código!")
+            continue
+        break
+
     nome = input("Nome da Agência: \n")
     cidade_e_estado = input("Cidade e Estado onde a Agência é Localizada: \n")
 
@@ -10,7 +16,6 @@ def cadastrar_agencia():
         "nome_agencia": nome,
         "cidade_estado": cidade_e_estado,
     }
-
 
 def procurar_agencia(lista_agencias, codigo):
     """Consulta se uma agência está contida na lista de agências."""

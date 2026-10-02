@@ -49,7 +49,7 @@ def ler_cpf(lista_clientes=None):
         return formatar_cpf(cpf)
 
 
-def cadastrar_cliente(lista_clientes=None):
+def cadastrar_cliente(lista_clientes):
     # Função que cadastra clientes e os salva dentro de um dicionário
     while True:
         cpf = ler_cpf(lista_clientes)

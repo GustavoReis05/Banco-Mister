@@ -15,16 +15,17 @@ def menu_principal():
         print("1 - Cadastrar Cliente")
         print("2 - Cadastrar Agência")
         print("3 - Cadastrar Conta")
-        print("4 - Listar Clientes")
-        print("5 - Listar Agências")
-        print("6 - Listar Contas")
-        print("7 - Sacar")
-        print("8 - Depositar")
-        print("9 - Transferir")
-        print("10 - Consultar Saldo")
-        print("11 - Relatório: Montante Total da Agência")
-        print("12 - Relatório: Montante Total do Banco")
-        print("13 - Aplicar Rendimento da Poupança")
+        print("4 - Buscar Cliente")
+        print("5 - Listar Clientes")
+        print("6 - Listar Agências")
+        print("7 - Listar Contas")
+        print("8 - Sacar")
+        print("9 - Depositar")
+        print("10 - Transferir")
+        print("11 - Consultar Saldo")
+        print("12 - Relatório: Montante Total da Agência")
+        print("13 - Relatório: Montante Total do Banco")
+        print("14 - Aplicar Rendimento da Poupança")
         print("0 - Sair e Salvar")
 
         opcao = input("\nEscolha uma opção: ").strip()
@@ -36,17 +37,30 @@ def menu_principal():
                 print("Cliente adicionado à memória.")
 
         elif opcao == "2":
-            nova_agencia = agencia.cadastrar_agencia()
+            nova_agencia = agencia.cadastrar_agencia(lista_agencias)
             if nova_agencia:
                 lista_agencias.append(nova_agencia)
                 print("Agência adicionada à memória.")
 
         elif opcao == "3":
-            nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias)
+            nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias, lista_contas)
             if nova_conta:
                 lista_contas.append(nova_conta)
 
         elif opcao == "4":
+            termo_busca = input("Digite o CPF ou Nome do cliente: ").strip()
+            cliente_encontrado = cliente.procurar_cliente(lista_clientes, termo_busca)
+            
+            if cliente_encontrado:
+                print("\n=== CLIENTE ENCONTRADO ===")
+                print(f"CPF: {cliente_encontrado['cpf']}")
+                print(f"Nome: {cliente_encontrado['nome']}")
+                print(f"Data de Nascimento: {cliente_encontrado['data_nascimento']}")
+                print(f"Telefone: {cliente_encontrado['numero_telefone']}")
+            else:
+                print("Cliente não encontrado!")
+
+        elif opcao == "5":
             if not lista_clientes:
                 print("\nNenhum cliente cadastrado.")
             else:
@@ -54,7 +68,7 @@ def menu_principal():
                 for i, c in enumerate(lista_clientes, start=1):
                     print(f"{i}. CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}")
 
-        elif opcao == "5":
+        elif opcao == "6":
             if not lista_agencias:
                 print("\nNenhuma agência cadastrada.")
             else:
@@ -62,22 +76,22 @@ def menu_principal():
                 for i, a in enumerate(lista_agencias, start=1):
                     print(f"{i}. Código: {a['codigo_agencia']} | Nome: {a['nome_agencia']}")
 
-        elif opcao == "6":
+        elif opcao == "7":
             conta.listar_contas(lista_contas)
 
-        elif opcao == "7":
+        elif opcao == "8":
             conta.sacar(lista_contas)
 
-        elif opcao == "8":
+        elif opcao == "9":
             conta.depositar(lista_contas)
 
-        elif opcao == "9":
+        elif opcao == "10":
             conta.transferir(lista_contas)
 
-        elif opcao == "10":
+        elif opcao == "11":
             conta.consultar_saldo(lista_contas)
 
-        elif opcao == "11":
+        elif opcao == "12":
             codigo = input("Digite o código da agência: ").strip()
             agencia_encontrada = agencia.procurar_agencia(lista_agencias, codigo)
             if agencia_encontrada:
@@ -89,11 +103,11 @@ def menu_principal():
             else:
                 print("Agência não encontrada.")
 
-        elif opcao == "12":
+        elif opcao == "13":
             total_banco = conta.calcular_montante_banco(lista_contas)
             print(f"Montante Total no Banco Mister: R$ {total_banco:.2f}")
 
-        elif opcao == "13":
+        elif opcao == "14":
             conta.aplicar_rendimento(lista_contas)
 
         elif opcao == "0":

@@ -56,7 +56,7 @@ def escolher_tipo_conta():
 # Função de cadastro de conta.
 # Consulta se o cliente e a agência já estão cadastrados.
 # Se estiverem, lê o número da conta e o tipo.
-def cadastrar_conta(lista_clientes, lista_agencias):
+def cadastrar_conta(lista_clientes, lista_agencias, lista_contas):
     termo_busca = input("CPF ou Nome do cliente: ").strip().lower()
     cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
 
@@ -72,6 +72,10 @@ def cadastrar_conta(lista_clientes, lista_agencias):
         return None
 
     numero_conta = input("Digite o numero da conta: ").strip()
+    if procurar_conta(lista_contas, numero_conta):
+        print("Erro: Já existe uma conta com esse número!")
+        return None   
+    
     tipo_conta = escolher_tipo_conta()
 
     print(f"Conta {tipo_conta} - {numero_conta} criada com sucesso!")
