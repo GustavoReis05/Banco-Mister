@@ -1,122 +1,155 @@
-import agencia
+import json
+from datetime import date
+from pathlib import Path
+
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+
 import cliente
+import agencia 
 import conta
 
-lista_clientes = []
-lista_agencias = []
-lista_contas = []
+app = Flask(__name__)
+
+# Necessária para mostrar mensagens com flash().
+# Esta chave é apenas para desenvolvimento local.
+app.secret_key = "banco-mister-desenvolvimento"
+
+# O arquivo será criado na mesma pasta deste web.py.
+ARQUIVO_DADOS = Path(__file__).parent / "banco_dados.json"
 
 
-def menu_principal():
-    conta.carregar_dados_json(lista_clientes, lista_agencias, lista_contas)
+# --------------------------------------------------
+# FUNÇÕES PARA LER E SALVAR OS DADOS
+# --------------------------------------------------
 
-    while True:
-        print("\n=== BANCO MISTER ===")
-        print("1 - Cadastrar Cliente")
-        print("2 - Cadastrar Agência")
-        print("3 - Cadastrar Conta")
-        print("4 - Buscar Cliente")
-        print("5 - Listar Clientes")
-        print("6 - Listar Agências")
-        print("7 - Listar Contas")
-        print("8 - Sacar")
-        print("9 - Depositar")
-        print("10 - Transferir")
-        print("11 - Consultar Saldo")
-        print("12 - Relatório: Montante Total da Agência")
-        print("13 - Relatório: Montante Total do Banco")
-        print("14 - Aplicar Rendimento da Poupança")
-        print("0 - Sair e Salvar")
+def carregar_dados():
+    if not ARQUIVO_DADOS.exists():
+        return {
+            "clientes": [],
+            "agencias": [],
+            "contas": [],
+        }
 
-        opcao = input("\nEscolha uma opção: ").strip()
+    with ARQUIVO_DADOS.open("r", encoding="utf-8") as arquivo:
+        return json.load(arquivo)
 
-        if opcao == "1":
-            novo_cliente = cliente.cadastrar_cliente(lista_clientes)
-            if novo_cliente:
-                lista_clientes.append(novo_cliente)
-                print("Cliente adicionado à memória.")
 
-        elif opcao == "2":
-            nova_agencia = agencia.cadastrar_agencia(lista_agencias)
-            if nova_agencia:
-                lista_agencias.append(nova_agencia)
-                print("Agência adicionada à memória.")
+def salvar_dados(dados):
+    with ARQUIVO_DADOS.open("w", encoding="utf-8") as arquivo:
+        json.dump(
+            dados,
+            arquivo,
+            indent=4,
+            ensure_ascii=False,
+        )
 
-        elif opcao == "3":
-            nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias, lista_contas)
-            if nova_conta:
-                lista_contas.append(nova_conta)
 
-        elif opcao == "4":
-            termo_busca = input("Digite o CPF ou Nome do cliente: ").strip()
-            cliente_encontrado = cliente.procurar_cliente(lista_clientes, termo_busca)
-            
-            if cliente_encontrado:
-                print("\n=== CLIENTE ENCONTRADO ===")
-                print(f"CPF: {cliente_encontrado['cpf']}")
-                print(f"Nome: {cliente_encontrado['nome']}")
-                print(f"Data de Nascimento: {cliente_encontrado['data_nascimento']}")
-                print(f"Telefone: {cliente_encontrado['numero_telefone']}")
-            else:
-                print("Cliente não encontrado!")
+# --------------------------------------------------
+# PÁGINAS
+# --------------------------------------------------
 
-        elif opcao == "5":
-            if not lista_clientes:
-                print("\nNenhum cliente cadastrado.")
-            else:
-                print("\n=== LISTA DE CLIENTES ===")
-                for i, c in enumerate(lista_clientes, start=1):
-                    print(f"{i}. CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}")
+@app.route("/")
+def inicio():
+    return render_template("index.html")
 
-        elif opcao == "6":
-            if not lista_agencias:
-                print("\nNenhuma agência cadastrada.")
-            else:
-                print("\n=== LISTA DE AGÊNCIAS ===")
-                for i, a in enumerate(lista_agencias, start=1):
-                    print(f"{i}. Código: {a['codigo_agencia']} | Nome: {a['nome_agencia']}")
 
-        elif opcao == "7":
-            conta.listar_contas(lista_contas)
+@app.route("/cadastro")
+def pagina_cadastro():
+    return render_template("cadastro.html")
 
-        elif opcao == "8":
-            conta.sacar(lista_contas)
 
-        elif opcao == "9":
-            conta.depositar(lista_contas)
+# --------------------------------------------------
+# CADASTRO DE CLIENTE
+# --------------------------------------------------
 
-        elif opcao == "10":
-            conta.transferir(lista_contas)
+@app.route("/cadastrar-cliente", methods=["POST"])
+def receber_cadastro_cliente():
+    # Lê os cadastros existentes.
+    dados = carregar_dados()
 
-        elif opcao == "11":
-            conta.consultar_saldo(lista_contas)
+    try:
+        # Envia os campos do formulário para cliente.py.
+        novo_cliente = cliente.cadastrar_cliente(
+            lista_clientes=dados["clientes"],
+            cpf=request.form.get("cpf", ""),
+            nome=request.form.get("nome", ""),
+            data_nascimento=request.form.get("data_nascimento", ""),
+            numero_telefone=request.form.get("numero_telefone", ""),
+        )
 
-        elif opcao == "12":
-            codigo = input("Digite o código da agência: ").strip()
-            agencia_encontrada = agencia.procurar_agencia(lista_agencias, codigo)
-            if agencia_encontrada:
-                total = conta.calcular_montante_agencia(lista_contas, codigo)
-                print(
-                    f"Montante Total na Agência {agencia_encontrada['codigo_agencia']} "
-                    f"({agencia_encontrada['nome_agencia']}): R$ {total:.2f}"
-                )
-            else:
-                print("Agência não encontrada.")
+    except ValueError as erro:
+        flash(str(erro))
+        return redirect(url_for("pagina_cadastro"))
 
-        elif opcao == "13":
-            total_banco = conta.calcular_montante_banco(lista_contas)
-            print(f"Montante Total no Banco Mister: R$ {total_banco:.2f}")
+    # Acrescenta o cliente e salva no JSON.
+    dados["clientes"].append(novo_cliente)
+    salvar_dados(dados)
 
-        elif opcao == "14":
-            conta.aplicar_rendimento(lista_contas)
+    flash("Cliente cadastrado e salvo com sucesso!")
+    return redirect(url_for("pagina_cadastro"))
 
-        elif opcao == "0":
-            conta.salvar_dados_json(lista_clientes, lista_agencias, lista_contas)
-            print("Dados salvos em banco_dados.json com sucesso!")
-            print("Saindo do programa...")
-            break
+# --------------------------------------------------
+# CADASTRO DE AGÊNCIA
+# --------------------------------------------------
 
-        else:
-            print("Opção inválida! Tente novamente.")
+@app.route("/cadastrar-agencia", methods=["POST"])
+def receber_cadastro_agencia():
+    dados = carregar_dados()
 
-menu_principal()
+    try:
+        nova_agencia = agencia.cadastrar_agencia(
+            lista_agencias=dados["agencias"],
+            codigo=request.form.get("codigo_agencia", ""),
+            nome=request.form.get("nome_agencia", ""),
+            cidade_estado=request.form.get("cidade_estado", ""),
+        )
+    except ValueError as erro:
+        flash(str(erro))
+        return redirect(url_for("pagina_cadastro"))
+
+    dados["agencias"].append(nova_agencia)
+    salvar_dados(dados)
+
+    flash("Agência cadastrada e salva com sucesso!")
+    return redirect(url_for("pagina_cadastro"))
+
+# --------------------------------------------------
+# CADASTRO DE CONTA
+# --------------------------------------------------
+
+@app.route("/cadastrar-conta", methods=["POST"])
+def cadastrar_conta():
+    dados = carregar_dados()
+
+    try:
+        nova_conta = conta.cadastrar_conta(
+            lista_clientes=dados["clientes"],
+            lista_agencias=dados["agencias"],
+            lista_contas=dados["contas"],
+            termo_busca=request.form.get("termo_busca", ""),
+            agencia_cod=request.form.get("agencia_cod", ""),
+            numero_conta=request.form.get("numero_conta", ""),
+            tipo=request.form.get("tipo", ""),
+        )
+    except ValueError as erro:
+        flash(str(erro))
+        return redirect(url_for("pagina_cadastro"))
+
+    dados["contas"].append(nova_conta)
+    salvar_dados(dados)
+
+    flash("Conta cadastrada e salva com sucesso!")
+    return redirect(url_for("pagina_cadastro"))
+# --------------------------------------------------
+# INICIAR O SERVIDOR
+# --------------------------------------------------
+
+if __name__ == "__main__":
+    app.run(debug=True)

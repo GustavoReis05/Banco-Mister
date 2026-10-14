@@ -1,3 +1,5 @@
+from datetime import date
+
 def somente_digitos(texto):
     """Remove tudo que não for número."""
     return "".join(ch for ch in str(texto) if ch.isdigit())
@@ -49,42 +51,49 @@ def ler_cpf(lista_clientes=None):
         return formatar_cpf(cpf)
 
 
-def cadastrar_cliente(lista_clientes):
-    # Função que cadastra clientes e os salva dentro de um dicionário
-    while True:
-        cpf = ler_cpf(lista_clientes)
-        nome = input("Nome completo: \n")
-        data_nascimento = input("Data de nascimento: \n")
-        numero_telefone = input("Número de telefone: \n")
+def cadastrar_cliente(
+    lista_clientes,
+    cpf,
+    nome,
+    data_nascimento,
+    numero_telefone,
+):
+    cpf = cpf.strip()
+    nome = nome.strip()
+    data_nascimento = data_nascimento.strip()
+    numero_telefone = numero_telefone.strip()
 
-        print("\nOs dados estão corretos?\n")
-        print("CPF: ", cpf)
-        print("Nome completo: ", nome)
-        print("Data de Nascimento: ", data_nascimento)
-        print("Numero de Telefone: ", numero_telefone)
-        print()
+    # Verifica os campos obrigatórios.
+    if not all([cpf, nome, data_nascimento, numero_telefone]):
+        raise ValueError("Preencha todos os campos do cliente.")
 
-        while True:
-            # Confirmação dados cadastrados
-            confirmacao = input(
-                "DIGITE A OPÇÃO DE ACORDO COM A VALIDADE DOS SEUS DADOS:\n"
-                "1 - Sim, os dados estão corretos.\n"
-                "2 - Não, os dados estão incorretos\n"
-            ).strip()
+    # Usa a função de validação que já existe neste arquivo.
+    if not validar_cpf(cpf):
+        raise ValueError("CPF inválido.")
 
-            if confirmacao == "1":
-                print("CLIENTE CADASTRADO COM SUCESSO!")
-                return {
-                    "cpf": cpf,
-                    "nome": nome,
-                    "data_nascimento": data_nascimento,
-                    "numero_telefone": numero_telefone,
-                }
-            elif confirmacao == "2":
-                print("CADASTRE SEUS DADOS NOVAMENTE!")
-                break
-            else:
-                print("Opção inválida! Digite 1 ou 2.")
+    # Impede o cadastro de um CPF já existente.
+    for cliente_existente in lista_clientes:
+        cpf_existente = somente_digitos(cliente_existente["cpf"])
+
+        if cpf_existente == somente_digitos(cpf):
+            raise ValueError("Já existe um cliente com esse CPF.")
+
+    # Verifica a data recebida do formulário.
+    try:
+        nascimento = date.fromisoformat(data_nascimento)
+    except ValueError:
+        raise ValueError("Data de nascimento inválida.")
+
+    if nascimento > date.today():
+        raise ValueError("A data de nascimento não pode estar no futuro.")
+
+    # Devolve o cliente criado.
+    return {
+        "cpf": formatar_cpf(cpf),
+        "nome": nome,
+        "data_nascimento": data_nascimento,
+        "numero_telefone": numero_telefone,
+    }
 
 
 def procurar_cliente(lista_clientes, termo_busca):

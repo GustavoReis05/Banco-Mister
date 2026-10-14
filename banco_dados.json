@@ -1,0 +1,62 @@
+{
+    "clientes": [
+        {
+            "cpf": "079.603.885-63",
+            "nome": "Gusaiyfw weugfyiwr iuwgfuir",
+            "data_nascimento": "2026-10-14",
+            "numero_telefone": "7982737645"
+        },
+        {
+            "cpf": "057.534.270-65",
+            "nome": "Teste 002",
+            "data_nascimento": "2026-10-13",
+            "numero_telefone": "7467456546"
+        },
+        {
+            "cpf": "564.026.890-50",
+            "nome": "Vera Reis",
+            "data_nascimento": "2026-06-30",
+            "numero_telefone": "12345678910"
+        }
+    ],
+    "agencias": [
+        {
+            "codigo_agencia": "001",
+            "nome_agencia": "Lagarto",
+            "cidade_estado": "Lagarto Se"
+        },
+        {
+            "codigo_agencia": "00045",
+            "nome_agencia": "Aracaju",
+            "cidade_estado": "Aracaju Se"
+        },
+        {
+            "codigo_agencia": "0023",
+            "nome_agencia": "Salgado",
+            "cidade_estado": "Salgado"
+        }
+    ],
+    "contas": [
+        {
+            "numero_conta": "1001",
+            "cpf": "079.603.885-63",
+            "agencia_cod": "001",
+            "saldo_conta": 0.0,
+            "tipo": "corrente"
+        },
+        {
+            "numero_conta": "10002",
+            "cpf": "057.534.270-65",
+            "agencia_cod": "00045",
+            "saldo_conta": 0.0,
+            "tipo": "salário"
+        },
+        {
+            "numero_conta": "10045",
+            "cpf": "564.026.890-50",
+            "agencia_cod": "0023",
+            "saldo_conta": 0.0,
+            "tipo": "poupança"
+        }
+    ]
+}

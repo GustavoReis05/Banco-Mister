@@ -56,35 +56,55 @@ def escolher_tipo_conta():
 # Função de cadastro de conta.
 # Consulta se o cliente e a agência já estão cadastrados.
 # Se estiverem, lê o número da conta e o tipo.
-def cadastrar_conta(lista_clientes, lista_agencias, lista_contas):
-    termo_busca = input("CPF ou Nome do cliente: ").strip().lower()
-    cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
+def cadastrar_conta(
+    lista_clientes,
+    lista_agencias,
+    lista_contas,
+    termo_busca,
+    agencia_cod,
+    numero_conta,
+    tipo,
+):
+    termo_busca = termo_busca.strip()
+    agencia_cod = agencia_cod.strip()
+    numero_conta = numero_conta.strip()
+    tipo = tipo.strip()
+
+    # Verifica os campos obrigatórios.
+    if not all([termo_busca, agencia_cod, numero_conta, tipo]):
+        raise ValueError("Preencha todos os campos da conta.")
+
+    # Procura o cliente pelo CPF ou nome.
+    cliente_encontrado = procurar_cliente(
+        lista_clientes,
+        termo_busca,
+    )
 
     if not cliente_encontrado:
-        print("Cliente não encontrado!")
-        return None
+        raise ValueError(
+            "Cliente não encontrado ou nome ambíguo. "
+            "Informe o CPF ou o nome completo."
+        )
 
-    cpf = cliente_encontrado["cpf"]
-
-    agencia_cod = input("Código da agência: ").strip()
+    # Confirma que a agência existe.
     if not procurar_agencia(lista_agencias, agencia_cod):
-        print("Agência não encontrada!")
-        return None
+        raise ValueError("Agência não encontrada.")
 
-    numero_conta = input("Digite o numero da conta: ").strip()
+    # Impede números de conta duplicados.
     if procurar_conta(lista_contas, numero_conta):
-        print("Erro: Já existe uma conta com esse número!")
-        return None   
-    
-    tipo_conta = escolher_tipo_conta()
+        raise ValueError("Já existe uma conta com esse número.")
 
-    print(f"Conta {tipo_conta} - {numero_conta} criada com sucesso!")
+    # Confirma que o tipo escolhido é permitido.
+    if tipo not in TIPOS_CONTA.values():
+        raise ValueError("Tipo de conta inválido.")
+
+    # Devolve a conta criada.
     return {
         "numero_conta": numero_conta,
-        "cpf": cpf,
+        "cpf": cliente_encontrado["cpf"],
         "agencia_cod": agencia_cod,
         "saldo_conta": 0.0,
-        "tipo": tipo_conta,
+        "tipo": tipo,
     }
 
 

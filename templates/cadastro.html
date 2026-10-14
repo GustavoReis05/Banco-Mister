@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Banco Mister</title>
+</head>
+<body>
+
+    <header>
+        <h1>BANCO MISTER</h1>
+        <p>Sistema de Gerenciamento Bancário</p>
+    </header>
+
+    <hr>
+
+    <main>
+        <h2>Cadastros</h2>
+
+        {% with mensagens = get_flashed_messages() %}
+            {% if mensagens %}
+                <div role="status">
+                    {% for mensagem in mensagens %}
+                        <p>{{ mensagem }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- CADASTRO DE CLIENTE -->
+        <section id="cadastro-cliente">
+            <h3>Cadastro de Cliente</h3>
+
+            <form action="/cadastrar-cliente" method="post">
+                <p>
+                    <label for="cpf">CPF:</label>
+                    <input
+                        type="text"
+                        id="cpf"
+                        name="cpf"
+                        placeholder="000.000.000-00"
+                        maxlength="14"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="nome">Nome completo:</label>
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        autocomplete="name"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="nascimento">Data de nascimento:</label>
+                    <input
+                        type="date"
+                        id="nascimento"
+                        name="data_nascimento"
+                        autocomplete="bday"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="telefone">Telefone:</label>
+                    <input
+                        type="tel"
+                        id="telefone"
+                        name="numero_telefone"
+                        placeholder="(00) 00000-0000"
+                        autocomplete="tel"
+                        required
+                    >
+                </p>
+
+                <button type="submit">Cadastrar Cliente</button>
+                <button type="reset">Limpar</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <!-- CADASTRO DE AGÊNCIA -->
+        <section id="cadastro-agencia">
+            <h3>Cadastro de Agência</h3>
+
+            <form action="/cadastrar-agencia" method="post">
+                <p>
+                    <label for="codigo-agencia">Código da agência:</label>
+                    <input
+                        type="text"
+                        id="codigo-agencia"
+                        name="codigo_agencia"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="nome-agencia">Nome da agência:</label>
+                    <input
+                        type="text"
+                        id="nome-agencia"
+                        name="nome_agencia"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="cidade-estado">Cidade e estado:</label>
+                    <input
+                        type="text"
+                        id="cidade-estado"
+                        name="cidade_estado"
+                        required
+                    >
+                </p>
+
+                <button type="submit">Cadastrar Agência</button>
+                <button type="reset">Limpar</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <!-- CADASTRO DE CONTA -->
+        <section id="cadastro-conta">
+            <h3>Cadastro de Conta</h3>
+            <p>O cliente e a agência devem estar cadastrados.</p>
+
+            <form action="/cadastrar-conta" method="post">
+                <p>
+                    <label for="cliente-conta">CPF ou nome do cliente:</label>
+                    <input
+                        type="text"
+                        id="cliente-conta"
+                        name="termo_busca"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="agencia-conta">Código da agência:</label>
+                    <input
+                        type="text"
+                        id="agencia-conta"
+                        name="agencia_cod"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="numero-conta">Número da conta:</label>
+                    <input
+                        type="text"
+                        id="numero-conta"
+                        name="numero_conta"
+                        required
+                    >
+                </p>
+
+                <p>
+                    <label for="tipo-conta">Tipo de conta:</label>
+                    <select id="tipo-conta" name="tipo" required>
+                        <option value="">Selecione</option>
+                        <option value="poupança">Poupança</option>
+                        <option value="corrente">Corrente</option>
+                        <option value="salário">Salário</option>
+                    </select>
+                </p>
+
+                <button type="submit">Cadastrar Conta</button>
+                <button type="reset">Limpar</button>
+            </form>
+        </section>
+    </main>
+
+    <hr>
+
+    <footer>
+        <a href="/">Voltar ao Menu Principal</a>
+    </footer>
+
+</body>
+</html>
