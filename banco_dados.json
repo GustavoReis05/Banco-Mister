@@ -1,7 +1,7 @@
 {
     "clientes": [
         {
-            "cpf": "079.603.885-63",
+            "cpf": "908.283.540-14",
             "nome": "Gusaiyfw weugfyiwr iuwgfuir",
             "data_nascimento": "2026-10-14",
             "numero_telefone": "7982737645"
@@ -17,6 +17,12 @@
             "nome": "Vera Reis",
             "data_nascimento": "2026-06-30",
             "numero_telefone": "12345678910"
+        },
+        {
+            "cpf": "646.093.520-36",
+            "nome": "oidhfiusg",
+            "data_nascimento": "2026-09-29",
+            "numero_telefone": "4345767"
         }
     ],
     "agencias": [
@@ -34,14 +40,19 @@
             "codigo_agencia": "0023",
             "nome_agencia": "Salgado",
             "cidade_estado": "Salgado"
+        },
+        {
+            "codigo_agencia": "1003",
+            "nome_agencia": "Estancia",
+            "cidade_estado": "Estancia sergipe"
         }
     ],
     "contas": [
         {
             "numero_conta": "1001",
-            "cpf": "079.603.885-63",
+            "cpf": "908.283.540-14",
             "agencia_cod": "001",
-            "saldo_conta": 0.0,
+            "saldo_conta": 500000.0,
             "tipo": "corrente"
         },
         {
@@ -55,8 +66,15 @@
             "numero_conta": "10045",
             "cpf": "564.026.890-50",
             "agencia_cod": "0023",
-            "saldo_conta": 0.0,
+            "saldo_conta": 500000.0,
             "tipo": "poupança"
+        },
+        {
+            "numero_conta": "100003",
+            "cpf": "646.093.520-36",
+            "agencia_cod": "1003",
+            "saldo_conta": 0.0,
+            "tipo": "salário"
         }
     ]
 }

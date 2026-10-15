@@ -1,4 +1,4 @@
-import json
+import math
 from agencia import procurar_agencia
 from cliente import procurar_cliente
 
@@ -22,40 +22,8 @@ OPERACOES_PERMITIDAS = {
 TAXA_ANUAL_POUPANCA = 0.1375
 
 
-def operacao_permitida(conta, operacao):
-    """Verifica se o tipo da conta permite a operação."""
-    tipo = conta.get("tipo")
-    if operacao in OPERACOES_PERMITIDAS.get(tipo, set()):
-        return True
-    print(f"A conta {conta['numero_conta']} ({tipo}) não pode realizar: {operacao}.")
-    return False
-
-
-def ler_valor(mensagem):
-    """Lê um valor em reais. Retorna None se for inválido."""
-    try:
-        return float(input(mensagem).replace(",", "."))
-    except ValueError:
-        print("Valor inválido! Digite apenas números.")
-        return None
-
-
-# Seleção do tipo de conta (Salário, Poupança, Corrente)
-def escolher_tipo_conta():
-    while True:
-        print("\nTipo de conta:")
-        for codigo, nome in TIPOS_CONTA.items():
-            print(f"  {codigo} - {nome.capitalize()}")
-
-        opcao = input("Escolha o tipo: ").strip()
-        if opcao in TIPOS_CONTA:
-            return TIPOS_CONTA[opcao]
-        print("Opção inválida! Tente novamente.")
-
-
 # Função de cadastro de conta.
 # Consulta se o cliente e a agência já estão cadastrados.
-# Se estiverem, lê o número da conta e o tipo.
 def cadastrar_conta(
     lista_clientes,
     lista_agencias,
@@ -70,11 +38,11 @@ def cadastrar_conta(
     numero_conta = numero_conta.strip()
     tipo = tipo.strip()
 
-    # Verifica os campos obrigatórios.
+    # Verifica os campos obrigatórios
     if not all([termo_busca, agencia_cod, numero_conta, tipo]):
         raise ValueError("Preencha todos os campos da conta.")
 
-    # Procura o cliente pelo CPF ou nome.
+    # Procura o cliente pelo CPF ou nome
     cliente_encontrado = procurar_cliente(
         lista_clientes,
         termo_busca,
@@ -86,19 +54,19 @@ def cadastrar_conta(
             "Informe o CPF ou o nome completo."
         )
 
-    # Confirma que a agência existe.
+    # Confirma se a agência existe
     if not procurar_agencia(lista_agencias, agencia_cod):
         raise ValueError("Agência não encontrada.")
 
-    # Impede números de conta duplicados.
+    # Verifica se o numero da conta esta duplicado 
     if procurar_conta(lista_contas, numero_conta):
         raise ValueError("Já existe uma conta com esse número.")
 
-    # Confirma que o tipo escolhido é permitido.
+    # Confirma o tipo de conta
     if tipo not in TIPOS_CONTA.values():
         raise ValueError("Tipo de conta inválido.")
 
-    # Devolve a conta criada.
+    # Devolve a conta 
     return {
         "numero_conta": numero_conta,
         "cpf": cliente_encontrado["cpf"],
@@ -107,7 +75,7 @@ def cadastrar_conta(
         "tipo": tipo,
     }
 
-
+# Busca a conta na lista de contas
 def procurar_conta(lista_contas, numero):
     for c in lista_contas:
         if c["numero_conta"] == numero:
@@ -115,21 +83,17 @@ def procurar_conta(lista_contas, numero):
     return None
 
 
-def listar_contas(lista_contas, exibir=True):
-    """Exibe ou retorna a lista de contas."""
-    if exibir:
-        if not lista_contas:
-            print("Nenhuma conta cadastrada.")
-        else:
-            for c in lista_contas:
-                print(
-                    f"Conta: {c['numero_conta']} | {c['tipo'].capitalize()} | "
-                    f"CPF: {c['cpf']} | Agência: {c['agencia_cod']} | "
-                    f"Saldo: R$ {c['saldo_conta']:.2f}"
-                )
+def listar_contas(lista_contas):
+    """Retorna todas as contas cadastradas."""
     return lista_contas
 
 
+def operacao_permitida(conta, operacao):
+    """Verifica se o tipo da conta permite a operação."""
+    return operacao in OPERACOES_PERMITIDAS.get(conta.get("tipo"), set())
+
+
+# Função generica que atualiza o saldo de uma conta especifica
 def atualizar_saldo(lista_contas, numero, novo_saldo):
     for conta in lista_contas:
         if conta["numero_conta"] == numero:
@@ -137,65 +101,66 @@ def atualizar_saldo(lista_contas, numero, novo_saldo):
             break
 
 
-def sacar(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
-    if not c:
-        return print("Conta não encontrada!")
-    if not operacao_permitida(c, "sacar"):
-        return
-
-    valor = ler_valor("Valor do saque: R$ ")
-    if valor is None:
-        return
-
-    if 0 < valor <= c["saldo_conta"]:
-        atualizar_saldo(lista_contas, c["numero_conta"], c["saldo_conta"] - valor)
-        print(f"Saque de R$ {valor:.2f} realizado!")
-    else:
-        print("Valor inválido ou saldo insuficiente.")
+def validar_valor_operacao(valor):
+    """Converte reais com ponto ou vírgula e rejeita valores inválidos."""
+    try:
+        valor = float(str(valor).strip().replace(",", "."))
+    except (TypeError, ValueError):
+        raise ValueError("Valor inválido! Digite apenas números.")
+    if not math.isfinite(valor) or valor <= 0:
+        raise ValueError("O valor deve ser finito e maior que zero.")
+    if round(valor, 2) != valor:
+        raise ValueError("Informe um valor com no máximo duas casas decimais.")
+    return valor
 
 
-def depositar(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
-    if not c:
-        return print("Conta não encontrada!")
-    if not operacao_permitida(c, "depositar"):
-        return
 
-    valor = ler_valor("Valor do depósito: R$ ")
-    if valor is None:
-        return
-
-    if valor > 0:
-        atualizar_saldo(lista_contas, c["numero_conta"], c["saldo_conta"] + valor)
-        print(f"Depósito de R$ {valor:.2f} realizado!")
-    else:
-        print("Valor inválido.")
+def validar_conta_operacao(lista_contas, numero, operacao):
+    c = procurar_conta(lista_contas, str(numero).strip())
+    if c is None:
+        raise ValueError("Conta não encontrada!")
+    if not operacao_permitida(c, operacao):
+        raise ValueError(
+            f"A conta {c['numero_conta']} ({c['tipo']}) não pode realizar: {operacao}."
+        )
+    return c
 
 
-def transferir(lista_contas):
-    origem = procurar_conta(lista_contas, input("Número da Conta Origem: ").strip())
-    if not origem:
-        return print("Conta de origem não encontrada!")
-    if not operacao_permitida(origem, "transferir"):
-        return
+def sacar(lista_contas, numero=None, valor=None):
+    c = validar_conta_operacao(lista_contas, numero, "sacar")
+    valor = validar_valor_operacao(valor)
+    if valor > c["saldo_conta"]:
+        raise ValueError("Saldo insuficiente.")
+    atualizar_saldo(lista_contas, c["numero_conta"], round(c["saldo_conta"] - valor, 2))
+    return f"Saque de R$ {valor:.2f} realizado com sucesso!"
 
-    destino = procurar_conta(lista_contas, input("Número da Conta Destino: ").strip())
-    if not destino:
-        return print("Conta de destino não encontrada!")
+
+def depositar(lista_contas, numero=None, valor=None):
+    c = validar_conta_operacao(lista_contas, numero, "depositar")
+    valor = validar_valor_operacao(valor)
+    novo_saldo = round(c["saldo_conta"] + valor, 2)
+    if not math.isfinite(novo_saldo):
+        raise ValueError("Valor inválido para o saldo da conta.")
+    atualizar_saldo(lista_contas, c["numero_conta"], novo_saldo)
+    return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
+
+
+def transferir(lista_contas, numero_origem=None, numero_destino=None, valor=None):
+    origem = validar_conta_operacao(lista_contas, numero_origem, "transferir")
+    destino = procurar_conta(lista_contas, str(numero_destino).strip())
+    if destino is None:
+        raise ValueError("Conta de destino não encontrada!")
     if origem["numero_conta"] == destino["numero_conta"]:
-        return print("A conta de origem e a de destino devem ser diferentes.")
-
-    valor = ler_valor("Valor da transferência: R$ ")
-    if valor is None:
-        return
-
-    if 0 < valor <= origem["saldo_conta"]:
-        atualizar_saldo(lista_contas, origem["numero_conta"], origem["saldo_conta"] - valor)
-        atualizar_saldo(lista_contas, destino["numero_conta"], destino["saldo_conta"] + valor)
-        print("Transferência realizada com sucesso!")
-    else:
-        print("Saldo insuficiente ou valor inválido.")
+        raise ValueError("A conta de origem e a de destino devem ser diferentes.")
+    valor = validar_valor_operacao(valor)
+    if valor > origem["saldo_conta"]:
+        raise ValueError("Saldo insuficiente.")
+    saldo_destino = round(destino["saldo_conta"] + valor, 2)
+    if not math.isfinite(saldo_destino):
+        raise ValueError("Valor inválido para o saldo da conta de destino.")
+    atualizar_saldo(lista_contas, origem["numero_conta"], round(origem["saldo_conta"] - valor, 2))
+    atualizar_saldo(lista_contas, destino["numero_conta"], saldo_destino)
+    return "Transferência realizada com sucesso!"
 
 
 def consultar_saldo(lista_contas):
@@ -260,25 +225,3 @@ def calcular_montante_banco(lista_contas):
     for conta in lista_contas:
         montante_total += conta["saldo_conta"]
     return montante_total
-
-
-# Implementando o metodo de salvamento em JSON
-def salvar_dados_json(lista_clientes, lista_agencias, lista_contas):
-    dados = {
-        "clientes": lista_clientes,
-        "agencias": lista_agencias,
-        "contas": lista_contas,
-    }
-    with open("banco_dados.json", "w", encoding="utf-8") as f:
-        json.dump(dados, f, indent=4, ensure_ascii=False)
-
-
-def carregar_dados_json(lista_clientes, lista_agencias, lista_contas):
-    try:
-        with open("banco_dados.json", "r", encoding="utf-8") as f:
-            dados = json.load(f)
-            lista_clientes.extend(dados.get("clientes", []))
-            lista_agencias.extend(dados.get("agencias", []))
-            lista_contas.extend(dados.get("contas", []))
-    except FileNotFoundError:
-        pass

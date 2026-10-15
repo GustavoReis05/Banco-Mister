@@ -1,5 +1,4 @@
 import json
-from datetime import date
 from pathlib import Path
 
 from flask import (
@@ -56,61 +55,6 @@ def inicio():
 @app.route("/cadastro")
 def pagina_cadastro():
     return render_template("cadastro.html")
-
-# Rota da aneruta da pagina de listagem
-@app.route("/lista")
-def pagina_lista():
-    dados = carregar_dados()
-    return render_template(
-        "lista.html",
-        clientes=cliente.listar_clientes(dados["clientes"], exibir=False),
-        agencias=agencia.listar_agencias(dados["agencias"], exibir=False),
-        contas=conta.listar_contas(dados["contas"], exibir=False),
-    )
-
-
-# Abertura da rota para página de busca
-@app.route("/busca")
-# Lê os dados fornecidos no formulário e conecta com as funçoes de busca dentro de cada arquivo (agencia, conta e cliente)
-def pagina_busca():
-    tipo = request.args.get("tipo", "cliente")
-    termo = request.args.get("termo", "").strip()
-    pesquisou = "termo" in request.args
-    resultado = None
-    mensagem = None
-
-    if tipo not in ("cliente", "agencia", "conta"):
-        tipo = "cliente"
-        mensagem = "Selecione um tipo de busca válido."
-    elif pesquisou:
-        if not termo:
-            mensagem = "Informe um termo para realizar a busca."
-        else:
-            dados = carregar_dados()
-            if tipo == "cliente":
-                # Consulta a existencia do termo de busca dentro da lista de clientes
-                resultado = cliente.procurar_cliente(dados["clientes"], termo, exibir=False)
-                if resultado is None:
-                    mensagem = (
-                        "Cliente não encontrado ou nome ambíguo. "
-                        "Informe o CPF ou o nome completo."
-                    )
-            elif tipo == "agencia":
-                # Consulta a existencia do termo de busca dentro da lista de agencias
-                resultado = agencia.procurar_agencia(dados["agencias"], termo)
-                if resultado is None:
-                    mensagem = "Agência não encontrada."
-            else:
-                # Consulta a existencia do termo de busca dentro da lista de contas
-                resultado = conta.procurar_conta(dados["contas"], termo)
-                if resultado is None:
-                    mensagem = "Conta não encontrada."
-
-    return render_template(
-        "busca.html", tipo=tipo, termo=termo,
-        resultado=resultado, mensagem=mensagem,
-    )
-
 
 #Cadastro de cliente
 
@@ -191,6 +135,89 @@ def cadastrar_conta():
 
     flash("Conta cadastrada e salva com sucesso!")
     return redirect(url_for("pagina_cadastro"))
+
+# Rota da aneruta da pagina de listagem
+@app.route("/lista")
+def pagina_lista():
+    dados = carregar_dados()
+
+    return render_template(
+        "lista.html",
+        clientes=cliente.listar_clientes(dados["clientes"]),
+        agencias=agencia.listar_agencias(dados["agencias"]),
+        contas=conta.listar_contas(dados["contas"]),
+    )
+
+# Abertura da rota para página de busca
+@app.route("/busca")
+# Lê os dados fornecidos no formulário e conecta com as funçoes de busca dentro de cada arquivo (agencia, conta e cliente)
+def pagina_busca():
+    tipo = request.args.get("tipo", "cliente")
+    termo = request.args.get("termo", "").strip()
+    pesquisou = "termo" in request.args
+    resultado = None
+    mensagem = None
+
+    if tipo not in ("cliente", "agencia", "conta"):
+        tipo = "cliente"
+        mensagem = "Selecione um tipo de busca válido."
+    elif pesquisou:
+        if not termo:
+            mensagem = "Informe um termo para realizar a busca."
+        else:
+            dados = carregar_dados()
+            if tipo == "cliente":
+                # Consulta a existencia do termo de busca dentro da lista de clientes
+                resultado = cliente.procurar_cliente(dados["clientes"], termo, exibir=False)
+                if resultado is None:
+                    mensagem = (
+                        "Cliente não encontrado ou nome ambíguo. "
+                        "Informe o CPF ou o nome completo."
+                    )
+            elif tipo == "agencia":
+                # Consulta a existencia do termo de busca dentro da lista de agencias
+                resultado = agencia.procurar_agencia(dados["agencias"], termo)
+                if resultado is None:
+                    mensagem = "Agência não encontrada."
+            else:
+                # Consulta a existencia do termo de busca dentro da lista de contas
+                resultado = conta.procurar_conta(dados["contas"], termo)
+                if resultado is None:
+                    mensagem = "Conta não encontrada."
+
+    return render_template(
+        "busca.html", tipo=tipo, termo=termo,
+        resultado=resultado, mensagem=mensagem,
+    )
+
+
+@app.route("/operacoes", methods=["GET", "POST"])
+def pagina_operacoes():
+    if request.method == "POST":
+        dados = carregar_dados()
+        operacao = request.form.get("operacao", "")
+        numero = request.form.get("numero_conta", "")
+        valor = request.form.get("valor", "")
+        try:
+            if operacao == "sacar":
+                mensagem = conta.sacar(dados["contas"], numero, valor)
+            elif operacao == "depositar":
+                mensagem = conta.depositar(dados["contas"], numero, valor)
+            elif operacao == "transferir":
+                mensagem = conta.transferir(
+                    dados["contas"], numero,
+                    request.form.get("numero_destino", ""), valor,
+                )
+            else:
+                raise ValueError("Selecione uma operação válida.")
+        except ValueError as erro:
+            flash(str(erro))
+        else:
+            salvar_dados(dados)
+            flash(mensagem)
+        return redirect(url_for("pagina_operacoes"))
+    return render_template("operacoes.html")
+
 
 # Inicialização do servidor
 if __name__ == "__main__":

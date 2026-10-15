@@ -33,24 +33,6 @@ def formatar_cpf(cpf):
     return f"{n[:3]}.{n[3:6]}.{n[6:9]}-{n[9:]}"
 
 
-def ler_cpf(lista_clientes=None):
-    """Pede o CPF até ser válido (e, se a lista for passada, ainda não cadastrado)."""
-    while True:
-        cpf = input("CPF: \n").strip()
-
-        if not validar_cpf(cpf):
-            print("CPF inválido! Digite 11 números (com ou sem pontos e traço).")
-            continue
-
-        if lista_clientes is not None:
-            numeros = somente_digitos(cpf)
-            if any(somente_digitos(c.get("cpf", "")) == numeros for c in lista_clientes):
-                print("Já existe um cliente cadastrado com esse CPF!")
-                continue
-
-        return formatar_cpf(cpf)
-
-
 def cadastrar_cliente(
     lista_clientes,
     cpf,
@@ -96,7 +78,7 @@ def cadastrar_cliente(
     }
 
 
-def procurar_cliente(lista_clientes, termo_busca):
+def procurar_cliente(lista_clientes, termo_busca, exibir=True):
     """Busca um cliente pelo CPF ou nome (ignora maiúsculas e pontuação do CPF)"""
     termo = termo_busca.strip().lower()
     termo_cpf = termo.replace(".", "").replace("-", "")
@@ -118,18 +100,11 @@ def procurar_cliente(lista_clientes, termo_busca):
     ]
     if len(candidatos) == 1:
         return candidatos[0]
-    if len(candidatos) > 1:
+    if len(candidatos) > 1 and exibir:
         print("Mais de um cliente com esse nome. Digite o nome completo ou o CPF.")
     return None
 
 
-def listar_clientes(lista_clientes, exibir=True):
-    """Retorna ou exibe a lista de clientes."""
-    if exibir:
-        if not lista_clientes:
-            print("\nNenhum cliente cadastrado.")
-        else:
-            print("\n=== LISTA DE CLIENTES ===")
-            for i, c in enumerate(lista_clientes, start=1):
-                print(f"{i}. CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}")
+def listar_clientes(lista_clientes):
+    """Retorna todos os clientes cadastrados."""
     return lista_clientes

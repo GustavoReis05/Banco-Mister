@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operações - Banco Mister</title>
+</head>
+<body>
+    <header>
+        <h1>BANCO MISTER</h1>
+        <p>Sistema de Gerenciamento Bancário</p>
+    </header>
+    <hr>
+    <main>
+        <h2>Operações bancárias</h2>
+        {% with mensagens = get_flashed_messages() %}
+            {% for mensagem in mensagens %}
+            <p role="status">{{ mensagem }}</p>
+            {% endfor %}
+        {% endwith %}
+        {% for operacao, titulo in [('sacar', 'Saque'), ('depositar', 'Depósito'), ('transferir', 'Transferência')] %}
+        <section>
+            <h3>{{ titulo }}</h3>
+            <form action="{{ url_for('pagina_operacoes') }}" method="post">
+                <input type="hidden" name="operacao" value="{{ operacao }}">
+                <p>
+                    <label for="conta-{{ operacao }}">{% if operacao == 'transferir' %}Conta de origem:{% else %}Número da conta:{% endif %}</label>
+                    <input type="text" id="conta-{{ operacao }}" name="numero_conta" required>
+                </p>
+                {% if operacao == 'transferir' %}
+                <p>
+                    <label for="destino">Conta de destino:</label>
+                    <input type="text" id="destino" name="numero_destino" required>
+                </p>
+                {% endif %}
+                <p>
+                    <label for="valor-{{ operacao }}">Valor (R$):</label>
+                    <input type="text" inputmode="decimal" id="valor-{{ operacao }}" name="valor" required>
+                </p>
+                <button type="submit">Realizar {{ titulo|lower }}</button>
+            </form>
+        </section>
+        {% endfor %}
+    </main>
+    <hr>
+    <footer><a href="{{ url_for('inicio') }}">Voltar ao Menu Principal</a></footer>
+</body>
+</html>
