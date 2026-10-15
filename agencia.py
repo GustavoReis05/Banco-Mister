@@ -23,12 +23,13 @@ def procurar_agencia(lista_agencias, codigo):
     return None
 
 
-def listar_agencias(lista_agencias):
-    """Exibe todas as agências cadastradas."""
-    if not lista_agencias:
-        print("Nenhuma agência cadastrada.")
-        return
-
-    print("--- LISTA DE AGÊNCIAS ---")
-    for agencia in lista_agencias:
-        print(agencia["codigo_agencia"], agencia["nome_agencia"])
+def listar_agencias(lista_agencias, exibir=True):
+    """Exibe ou retorna todas as agências cadastradas."""
+    if exibir:
+        if not lista_agencias:
+            print("Nenhuma agência cadastrada.")
+            return
+        print("--- LISTA DE AGÊNCIAS ---")
+        for agencia in lista_agencias:
+            print(agencia["codigo_agencia"], agencia["nome_agencia"])
+    return lista_agencias

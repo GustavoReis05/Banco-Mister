@@ -121,3 +121,15 @@ def procurar_cliente(lista_clientes, termo_busca):
     if len(candidatos) > 1:
         print("Mais de um cliente com esse nome. Digite o nome completo ou o CPF.")
     return None
+
+
+def listar_clientes(lista_clientes, exibir=True):
+    """Retorna ou exibe a lista de clientes."""
+    if exibir:
+        if not lista_clientes:
+            print("\nNenhum cliente cadastrado.")
+        else:
+            print("\n=== LISTA DE CLIENTES ===")
+            for i, c in enumerate(lista_clientes, start=1):
+                print(f"{i}. CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}")
+    return lista_clientes

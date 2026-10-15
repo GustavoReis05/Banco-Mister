@@ -17,19 +17,15 @@ import conta
 
 app = Flask(__name__)
 
-# Necessária para mostrar mensagens com flash().
-# Esta chave é apenas para desenvolvimento local.
-app.secret_key = "banco-mister-desenvolvimento"
+app.secret_key = "banco-mister"
 
-# O arquivo será criado na mesma pasta deste web.py.
+# Criação do arquivo json
 ARQUIVO_DADOS = Path(__file__).parent / "banco_dados.json"
 
 
-# --------------------------------------------------
-# FUNÇÕES PARA LER E SALVAR OS DADOS
-# --------------------------------------------------
-
+#Função para ler e salvar dados 
 def carregar_dados():
+    # Função cria um JSON se nao encontrar dentro do diretorio
     if not ARQUIVO_DADOS.exists():
         return {
             "clientes": [],
@@ -51,23 +47,72 @@ def salvar_dados(dados):
         )
 
 
-# --------------------------------------------------
-# PÁGINAS
-# --------------------------------------------------
-
+# Inicializaçao do index (pagina inicial)
 @app.route("/")
 def inicio():
     return render_template("index.html")
 
-
+# Rota da abertura da pagina de cadastros
 @app.route("/cadastro")
 def pagina_cadastro():
     return render_template("cadastro.html")
 
+# Rota da aneruta da pagina de listagem
+@app.route("/lista")
+def pagina_lista():
+    dados = carregar_dados()
+    return render_template(
+        "lista.html",
+        clientes=cliente.listar_clientes(dados["clientes"], exibir=False),
+        agencias=agencia.listar_agencias(dados["agencias"], exibir=False),
+        contas=conta.listar_contas(dados["contas"], exibir=False),
+    )
 
-# --------------------------------------------------
-# CADASTRO DE CLIENTE
-# --------------------------------------------------
+
+# Abertura da rota para página de busca
+@app.route("/busca")
+# Lê os dados fornecidos no formulário e conecta com as funçoes de busca dentro de cada arquivo (agencia, conta e cliente)
+def pagina_busca():
+    tipo = request.args.get("tipo", "cliente")
+    termo = request.args.get("termo", "").strip()
+    pesquisou = "termo" in request.args
+    resultado = None
+    mensagem = None
+
+    if tipo not in ("cliente", "agencia", "conta"):
+        tipo = "cliente"
+        mensagem = "Selecione um tipo de busca válido."
+    elif pesquisou:
+        if not termo:
+            mensagem = "Informe um termo para realizar a busca."
+        else:
+            dados = carregar_dados()
+            if tipo == "cliente":
+                # Consulta a existencia do termo de busca dentro da lista de clientes
+                resultado = cliente.procurar_cliente(dados["clientes"], termo, exibir=False)
+                if resultado is None:
+                    mensagem = (
+                        "Cliente não encontrado ou nome ambíguo. "
+                        "Informe o CPF ou o nome completo."
+                    )
+            elif tipo == "agencia":
+                # Consulta a existencia do termo de busca dentro da lista de agencias
+                resultado = agencia.procurar_agencia(dados["agencias"], termo)
+                if resultado is None:
+                    mensagem = "Agência não encontrada."
+            else:
+                # Consulta a existencia do termo de busca dentro da lista de contas
+                resultado = conta.procurar_conta(dados["contas"], termo)
+                if resultado is None:
+                    mensagem = "Conta não encontrada."
+
+    return render_template(
+        "busca.html", tipo=tipo, termo=termo,
+        resultado=resultado, mensagem=mensagem,
+    )
+
+
+#Cadastro de cliente
 
 @app.route("/cadastrar-cliente", methods=["POST"])
 def receber_cadastro_cliente():
@@ -75,7 +120,7 @@ def receber_cadastro_cliente():
     dados = carregar_dados()
 
     try:
-        # Envia os campos do formulário para cliente.py.
+        # Lê os dados fornecidos no formulário e conecta com o arquivo cliente
         novo_cliente = cliente.cadastrar_cliente(
             lista_clientes=dados["clientes"],
             cpf=request.form.get("cpf", ""),
@@ -88,21 +133,21 @@ def receber_cadastro_cliente():
         flash(str(erro))
         return redirect(url_for("pagina_cadastro"))
 
-    # Acrescenta o cliente e salva no JSON.
+    # Acrescenta o cliente no JSON
     dados["clientes"].append(novo_cliente)
     salvar_dados(dados)
 
     flash("Cliente cadastrado e salvo com sucesso!")
     return redirect(url_for("pagina_cadastro"))
 
-# --------------------------------------------------
-# CADASTRO DE AGÊNCIA
-# --------------------------------------------------
+
+#Cadastro de agencia
 
 @app.route("/cadastrar-agencia", methods=["POST"])
 def receber_cadastro_agencia():
     dados = carregar_dados()
 
+    # Lê os dados fornecidos no formulário e conecta com o arquivo agencia
     try:
         nova_agencia = agencia.cadastrar_agencia(
             lista_agencias=dados["agencias"],
@@ -120,14 +165,13 @@ def receber_cadastro_agencia():
     flash("Agência cadastrada e salva com sucesso!")
     return redirect(url_for("pagina_cadastro"))
 
-# --------------------------------------------------
-# CADASTRO DE CONTA
-# --------------------------------------------------
+#Cadastro de conta 
 
 @app.route("/cadastrar-conta", methods=["POST"])
 def cadastrar_conta():
     dados = carregar_dados()
 
+    # Lê os dados fornecidos no formulário e conecta com o arquivo conta
     try:
         nova_conta = conta.cadastrar_conta(
             lista_clientes=dados["clientes"],
@@ -147,9 +191,7 @@ def cadastrar_conta():
 
     flash("Conta cadastrada e salva com sucesso!")
     return redirect(url_for("pagina_cadastro"))
-# --------------------------------------------------
-# INICIAR O SERVIDOR
-# --------------------------------------------------
 
+# Inicialização do servidor
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagem - Banco Mister</title>
+</head>
+<body>
+    <header>
+        <h1>BANCO MISTER</h1>
+        <p>Sistema de Gerenciamento Bancário</p>
+    </header>
+    <hr>
+    <main>
+        <h2>Listagem de cadastros</h2>
+        <nav aria-label="Listagens">
+            <a href="#clientes">Clientes</a> |
+            <a href="#agencias">Agências</a> |
+            <a href="#contas">Contas</a>
+        </nav>
+
+        <section id="clientes">
+            <h3>Clientes ({{ clientes|length }})</h3>
+            {% if clientes %}
+            <table>
+                <thead><tr>
+                    <th scope="col">CPF</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Data de nascimento</th>
+                    <th scope="col">Telefone</th>
+                </tr></thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.cpf }}</td>
+                        <td>{{ cliente.nome }}</td>
+                        <td>{{ cliente.data_nascimento }}</td>
+                        <td>{{ cliente.numero_telefone }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Nenhum cliente cadastrado.</p>
+            {% endif %}
+        </section>
+        <hr>
+        <section id="agencias">
+            <h3>Agências ({{ agencias|length }})</h3>
+            {% if agencias %}
+            <table>
+                <thead><tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Cidade e estado</th>
+                </tr></thead>
+                <tbody>
+                    {% for agencia in agencias %}
+                    <tr>
+                        <td>{{ agencia.codigo_agencia }}</td>
+                        <td>{{ agencia.nome_agencia }}</td>
+                        <td>{{ agencia.cidade_estado }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Nenhuma agência cadastrada.</p>
+            {% endif %}
+        </section>
+        <hr>
+        <section id="contas">
+            <h3>Contas ({{ contas|length }})</h3>
+            {% if contas %}
+            <table>
+                <thead><tr>
+                    <th scope="col">Número da conta</th>
+                    <th scope="col">CPF do titular</th>
+                    <th scope="col">Código da agência</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Saldo</th>
+                </tr></thead>
+                <tbody>
+                    {% for conta in contas %}
+                    <tr>
+                        <td>{{ conta.numero_conta }}</td>
+                        <td>{{ conta.cpf }}</td>
+                        <td>{{ conta.agencia_cod }}</td>
+                        <td>{{ conta.tipo|capitalize }}</td>
+                        <td>R$ {{ "{:,.2f}".format(conta.saldo_conta).replace(",", "_").replace(".", ",").replace("_", ".") }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Nenhuma conta cadastrada.</p>
+            {% endif %}
+        </section>
+    </main>
+    <hr>
+    <footer>
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastrar</a> |
+        <a href="{{ url_for('inicio') }}">Voltar ao Menu Principal</a>
+    </footer>
+</body>
+</html>

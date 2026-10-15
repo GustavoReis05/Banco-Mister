@@ -115,6 +115,21 @@ def procurar_conta(lista_contas, numero):
     return None
 
 
+def listar_contas(lista_contas, exibir=True):
+    """Exibe ou retorna a lista de contas."""
+    if exibir:
+        if not lista_contas:
+            print("Nenhuma conta cadastrada.")
+        else:
+            for c in lista_contas:
+                print(
+                    f"Conta: {c['numero_conta']} | {c['tipo'].capitalize()} | "
+                    f"CPF: {c['cpf']} | Agência: {c['agencia_cod']} | "
+                    f"Saldo: R$ {c['saldo_conta']:.2f}"
+                )
+    return lista_contas
+
+
 def atualizar_saldo(lista_contas, numero, novo_saldo):
     for conta in lista_contas:
         if conta["numero_conta"] == numero:
@@ -231,18 +246,6 @@ def aplicar_rendimento(lista_contas):
         f"\nRendimento de {meses} mês(es) aplicado em "
         f"{contas_atualizadas} conta(s) poupança."
     )
-
-
-def listar_contas(lista_contas):
-    if not lista_contas:
-        return print("Nenhuma conta cadastrada.")
-    for c in lista_contas:
-        print(
-            f"Conta: {c['numero_conta']} | {c['tipo'].capitalize()} | "
-            f"CPF: {c['cpf']} | Agência: {c['agencia_cod']} | "
-            f"Saldo: R$ {c['saldo_conta']:.2f}"
-        )
-
 
 def calcular_montante_agencia(lista_contas, codigo_agencia):
     montante_total = 0.0
