@@ -22,8 +22,30 @@ OPERACOES_PERMITIDAS = {
 TAXA_ANUAL_POUPANCA = 0.1375
 
 
-# Função de cadastro de conta.
-# Consulta se o cliente e a agência já estão cadastrados.
+# ---------- Funções de ordem superior reutilizáveis ----------
+
+def buscar_por(campo):
+    """Recebe um campo e retorna uma função de busca por esse campo."""
+    return lambda lista, valor: next(
+        filter(lambda item: item[campo] == valor, lista), None
+    )
+
+
+def somar_saldos(contas):
+    """Soma os saldos de qualquer coleção de contas."""
+    return sum((conta["saldo_conta"] for conta in contas), 0.0)
+
+
+procurar_conta = buscar_por("numero_conta")
+
+
+def conta_por_numero(lista_contas, numero):
+    """Busca a conta tolerando entrada não-string e espaços."""
+    return procurar_conta(lista_contas, str(numero).strip())
+
+
+# ---------- Cadastro ----------
+
 def cadastrar_conta(
     lista_clientes,
     lista_agencias,
@@ -33,40 +55,29 @@ def cadastrar_conta(
     numero_conta,
     tipo,
 ):
-    termo_busca = termo_busca.strip()
-    agencia_cod = agencia_cod.strip()
-    numero_conta = numero_conta.strip()
-    tipo = tipo.strip()
-
-    # Verifica os campos obrigatórios
-    if not all([termo_busca, agencia_cod, numero_conta, tipo]):
-        raise ValueError("Preencha todos os campos da conta.")
-
-    # Procura o cliente pelo CPF ou nome
-    cliente_encontrado = procurar_cliente(
-        lista_clientes,
-        termo_busca,
+    termo_busca, agencia_cod, numero_conta, tipo = map(
+        str.strip, (termo_busca, agencia_cod, numero_conta, tipo)
     )
 
+    if not all((termo_busca, agencia_cod, numero_conta, tipo)):
+        raise ValueError("Preencha todos os campos da conta.")
+
+    cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
     if not cliente_encontrado:
         raise ValueError(
             "Cliente não encontrado ou nome ambíguo. "
             "Informe o CPF ou o nome completo."
         )
 
-    # Confirma se a agência existe
     if not procurar_agencia(lista_agencias, agencia_cod):
         raise ValueError("Agência não encontrada.")
 
-    # Verifica se o numero da conta esta duplicado 
     if procurar_conta(lista_contas, numero_conta):
         raise ValueError("Já existe uma conta com esse número.")
 
-    # Confirma o tipo de conta
     if tipo not in TIPOS_CONTA.values():
         raise ValueError("Tipo de conta inválido.")
 
-    # Devolve a conta 
     return {
         "numero_conta": numero_conta,
         "cpf": cliente_encontrado["cpf"],
@@ -75,30 +86,24 @@ def cadastrar_conta(
         "tipo": tipo,
     }
 
-# Busca a conta na lista de contas
-def procurar_conta(lista_contas, numero):
-    for c in lista_contas:
-        if c["numero_conta"] == numero:
-            return c
-    return None
+
+def listar_contas(lista_contas, filtro=lambda conta: True):
+    """Retorna as contas cadastradas, opcionalmente filtradas por uma função."""
+    return [conta for conta in lista_contas if filtro(conta)]
 
 
-def listar_contas(lista_contas):
-    """Retorna todas as contas cadastradas."""
-    return lista_contas
-
+# ---------- Validações ----------
 
 def operacao_permitida(conta, operacao):
     """Verifica se o tipo da conta permite a operação."""
     return operacao in OPERACOES_PERMITIDAS.get(conta.get("tipo"), set())
 
 
-# Função generica que atualiza o saldo de uma conta especifica
 def atualizar_saldo(lista_contas, numero, novo_saldo):
-    for conta in lista_contas:
-        if conta["numero_conta"] == numero:
-            conta["saldo_conta"] = novo_saldo
-            break
+    """Atualiza o saldo de uma conta específica (se ela existir)."""
+    conta = procurar_conta(lista_contas, numero)
+    if conta:
+        conta["saldo_conta"] = novo_saldo
 
 
 def validar_valor_operacao(valor):
@@ -114,9 +119,8 @@ def validar_valor_operacao(valor):
     return valor
 
 
-
 def validar_conta_operacao(lista_contas, numero, operacao):
-    c = procurar_conta(lista_contas, str(numero).strip())
+    c = conta_por_numero(lista_contas, numero)
     if c is None:
         raise ValueError("Conta não encontrada!")
     if not operacao_permitida(c, operacao):
@@ -125,6 +129,14 @@ def validar_conta_operacao(lista_contas, numero, operacao):
         )
     return c
 
+
+def validar_saldo_finito(saldo, mensagem):
+    if not math.isfinite(saldo):
+        raise ValueError(mensagem)
+    return saldo
+
+
+# ---------- Operações ----------
 
 def sacar(lista_contas, numero=None, valor=None):
     c = validar_conta_operacao(lista_contas, numero, "sacar")
@@ -138,16 +150,17 @@ def sacar(lista_contas, numero=None, valor=None):
 def depositar(lista_contas, numero=None, valor=None):
     c = validar_conta_operacao(lista_contas, numero, "depositar")
     valor = validar_valor_operacao(valor)
-    novo_saldo = round(c["saldo_conta"] + valor, 2)
-    if not math.isfinite(novo_saldo):
-        raise ValueError("Valor inválido para o saldo da conta.")
+    novo_saldo = validar_saldo_finito(
+        round(c["saldo_conta"] + valor, 2),
+        "Valor inválido para o saldo da conta.",
+    )
     atualizar_saldo(lista_contas, c["numero_conta"], novo_saldo)
     return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
 
 
 def transferir(lista_contas, numero_origem=None, numero_destino=None, valor=None):
     origem = validar_conta_operacao(lista_contas, numero_origem, "transferir")
-    destino = procurar_conta(lista_contas, str(numero_destino).strip())
+    destino = conta_por_numero(lista_contas, numero_destino)
     if destino is None:
         raise ValueError("Conta de destino não encontrada!")
     if origem["numero_conta"] == destino["numero_conta"]:
@@ -155,73 +168,30 @@ def transferir(lista_contas, numero_origem=None, numero_destino=None, valor=None
     valor = validar_valor_operacao(valor)
     if valor > origem["saldo_conta"]:
         raise ValueError("Saldo insuficiente.")
-    saldo_destino = round(destino["saldo_conta"] + valor, 2)
-    if not math.isfinite(saldo_destino):
-        raise ValueError("Valor inválido para o saldo da conta de destino.")
+    saldo_destino = validar_saldo_finito(
+        round(destino["saldo_conta"] + valor, 2),
+        "Valor inválido para o saldo da conta de destino.",
+    )
     atualizar_saldo(lista_contas, origem["numero_conta"], round(origem["saldo_conta"] - valor, 2))
     atualizar_saldo(lista_contas, destino["numero_conta"], saldo_destino)
     return "Transferência realizada com sucesso!"
 
 
 def consultar_saldo(lista_contas):
-    c = procurar_conta(lista_contas, input("Número da Conta: ").strip())
+    c = conta_por_numero(lista_contas, input("Número da Conta: "))
     if c:
         print(f"Saldo da Conta {c['numero_conta']}: R$ {c['saldo_conta']:.2f}")
     else:
         print("Conta não encontrada!")
 
 
-def aplicar_rendimento(lista_contas):
-    entrada = input(
-        "Quantos meses de rendimento? (Enter = 12 meses, 13,75% cheio): "
-    ).strip()
+# ---------- Rendimento da poupança ----------
 
-    if entrada == "":
-        meses = 12
-    else:
-        try:
-            meses = int(entrada)
-        except ValueError:
-            return print("Digite um número inteiro de meses.")
+def render_conta(conta, fator):
+    """Aplica o fator à conta. Retorna (atualizada, mensagem)."""
+    saldo_antigo = conta["saldo_conta"]
+    if saldo_antigo <= 0:
+        return False, f"Conta {conta['numero_conta']}: saldo zerado, deposite antes para render."
 
-    if meses <= 0:
-        return print("O número de meses deve ser maior que zero.")
-
-    fator = (1 + TAXA_ANUAL_POUPANCA) ** (meses / 12)
-    contas_atualizadas = 0
-
-    for c in lista_contas:
-        if c.get("tipo") != "poupança":
-            continue
-
-        saldo_antigo = c["saldo_conta"]
-        if saldo_antigo <= 0:
-            print(f"Conta {c['numero_conta']}: saldo zerado, deposite antes para render.")
-            continue
-
-        novo_saldo = round(saldo_antigo * fator, 2)
-        c["saldo_conta"] = novo_saldo
-        contas_atualizadas += 1
-        print(
-            f"Conta {c['numero_conta']}: R$ {saldo_antigo:.2f} -> R$ {novo_saldo:.2f} "
-            f"(+R$ {novo_saldo - saldo_antigo:.2f})"
-        )
-
-    print(
-        f"\nRendimento de {meses} mês(es) aplicado em "
-        f"{contas_atualizadas} conta(s) poupança."
-    )
-
-def calcular_montante_agencia(lista_contas, codigo_agencia):
-    montante_total = 0.0
-    for conta in lista_contas:
-        if conta["agencia_cod"] == codigo_agencia:
-            montante_total += conta["saldo_conta"]
-    return montante_total
-
-
-def calcular_montante_banco(lista_contas):
-    montante_total = 0.0
-    for conta in lista_contas:
-        montante_total += conta["saldo_conta"]
-    return montante_total
+    novo_saldo = round(saldo_antigo * fator, 2)
+    conta["saldo_conta"]
