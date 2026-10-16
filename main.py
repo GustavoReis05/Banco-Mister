@@ -1,3 +1,5 @@
+from functools import partial
+
 import agencia
 import cliente
 import conta
@@ -6,117 +8,157 @@ lista_clientes = []
 lista_agencias = []
 lista_contas = []
 
+OPCOES_MENU = [
+    ("1", "Cadastrar Cliente"),
+    ("2", "Cadastrar Agência"),
+    ("3", "Cadastrar Conta"),
+    ("4", "Buscar Cliente"),
+    ("5", "Listar Clientes"),
+    ("6", "Listar Agências"),
+    ("7", "Listar Contas"),
+    ("8", "Sacar"),
+    ("9", "Depositar"),
+    ("10", "Transferir"),
+    ("11", "Consultar Saldo"),
+    ("12", "Relatório: Montante Total da Agência"),
+    ("13", "Relatório: Montante Total do Banco"),
+    ("14", "Aplicar Rendimento da Poupança"),
+    ("0", "Sair e Salvar"),
+]
+
+
+# ---------- Funções de ordem superior que geram os handlers do menu ----------
+
+def cadastrar_em(lista_destino, cadastrar, *listas_entrada, mensagem=None):
+    """Retorna um handler que chama `cadastrar(*listas_entrada)` e,
+    se devolver algo, adiciona o resultado em `lista_destino`."""
+    def executar():
+        novo = cadastrar(*listas_entrada)
+        if novo:
+            lista_destino.append(novo)
+            if mensagem:
+                print(mensagem)
+    return executar
+
+
+def listar(lista, titulo, mensagem_vazia, formatar):
+    """Retorna um handler que imprime `lista` numerada, usando `formatar` em cada item."""
+    def executar():
+        if not lista:
+            print(f"\n{mensagem_vazia}")
+            return
+        print(f"\n=== {titulo} ===")
+        print("\n".join(
+            [f"{i}. {formatar(item)}" for i, item in enumerate(lista, start=1)]
+        ))
+    return executar
+
+
+# ---------- Handlers específicos ----------
+
+def buscar_cliente():
+    termo_busca = input("Digite o CPF ou Nome do cliente: ").strip()
+    cliente_encontrado = cliente.procurar_cliente(lista_clientes, termo_busca)
+
+    if not cliente_encontrado:
+        print("Cliente não encontrado!")
+        return
+
+    campos = [
+        ("CPF", "cpf"),
+        ("Nome", "nome"),
+        ("Data de Nascimento", "data_nascimento"),
+        ("Telefone", "numero_telefone"),
+    ]
+    print("\n=== CLIENTE ENCONTRADO ===")
+    print("\n".join(
+        [f"{rotulo}: {cliente_encontrado[chave]}" for rotulo, chave in campos]
+    ))
+
+
+def montante_agencia():
+    codigo = input("Digite o código da agência: ").strip()
+    agencia_encontrada = agencia.procurar_agencia(lista_agencias, codigo)
+
+    if not agencia_encontrada:
+        print("Agência não encontrada.")
+        return
+
+    total = conta.calcular_montante_agencia(lista_contas, codigo)
+    print(
+        f"Montante Total na Agência {agencia_encontrada['codigo_agencia']} "
+        f"({agencia_encontrada['nome_agencia']}): R$ {total:.2f}"
+    )
+
+
+def montante_banco():
+    total_banco = conta.calcular_montante_banco(lista_contas)
+    print(f"Montante Total no Banco Mister: R$ {total_banco:.2f}")
+
+
+def salvar_dados():
+    conta.salvar_dados_json(lista_clientes, lista_agencias, lista_contas)
+    print("Dados salvos em banco_dados.json com sucesso!")
+    print("Saindo do programa...")
+
+
+# ---------- Tabela de ações: opção -> função sem argumentos ----------
+
+ACOES = {
+    "1": cadastrar_em(
+        lista_clientes, cliente.cadastrar_cliente, lista_clientes,
+        mensagem="Cliente adicionado à memória.",
+    ),
+    "2": cadastrar_em(
+        lista_agencias, agencia.cadastrar_agencia, lista_agencias,
+        mensagem="Agência adicionada à memória.",
+    ),
+    "3": cadastrar_em(
+        lista_contas, conta.cadastrar_conta,
+        lista_clientes, lista_agencias, lista_contas,
+    ),
+    "4": buscar_cliente,
+    "5": listar(
+        lista_clientes, "LISTA DE CLIENTES", "Nenhum cliente cadastrado.",
+        lambda c: f"CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}",
+    ),
+    "6": listar(
+        lista_agencias, "LISTA DE AGÊNCIAS", "Nenhuma agência cadastrada.",
+        lambda a: f"Código: {a['codigo_agencia']} | Nome: {a['nome_agencia']}",
+    ),
+    "7": partial(conta.listar_contas, lista_contas),
+    "8": partial(conta.sacar, lista_contas),
+    "9": partial(conta.depositar, lista_contas),
+    "10": partial(conta.transferir, lista_contas),
+    "11": partial(conta.consultar_saldo, lista_contas),
+    "12": montante_agencia,
+    "13": montante_banco,
+    "14": partial(conta.aplicar_rendimento, lista_contas),
+}
+
+
+def exibir_menu():
+    print("\n=== BANCO MISTER ===")
+    print("\n".join([f"{codigo} - {texto}" for codigo, texto in OPCOES_MENU]))
+
 
 def menu_principal():
     conta.carregar_dados_json(lista_clientes, lista_agencias, lista_contas)
 
     while True:
-        print("\n=== BANCO MISTER ===")
-        print("1 - Cadastrar Cliente")
-        print("2 - Cadastrar Agência")
-        print("3 - Cadastrar Conta")
-        print("4 - Buscar Cliente")
-        print("5 - Listar Clientes")
-        print("6 - Listar Agências")
-        print("7 - Listar Contas")
-        print("8 - Sacar")
-        print("9 - Depositar")
-        print("10 - Transferir")
-        print("11 - Consultar Saldo")
-        print("12 - Relatório: Montante Total da Agência")
-        print("13 - Relatório: Montante Total do Banco")
-        print("14 - Aplicar Rendimento da Poupança")
-        print("0 - Sair e Salvar")
-
+        exibir_menu()
         opcao = input("\nEscolha uma opção: ").strip()
 
-        if opcao == "1":
-            novo_cliente = cliente.cadastrar_cliente(lista_clientes)
-            if novo_cliente:
-                lista_clientes.append(novo_cliente)
-                print("Cliente adicionado à memória.")
-
-        elif opcao == "2":
-            nova_agencia = agencia.cadastrar_agencia(lista_agencias)
-            if nova_agencia:
-                lista_agencias.append(nova_agencia)
-                print("Agência adicionada à memória.")
-
-        elif opcao == "3":
-            nova_conta = conta.cadastrar_conta(lista_clientes, lista_agencias, lista_contas)
-            if nova_conta:
-                lista_contas.append(nova_conta)
-
-        elif opcao == "4":
-            termo_busca = input("Digite o CPF ou Nome do cliente: ").strip()
-            cliente_encontrado = cliente.procurar_cliente(lista_clientes, termo_busca)
-            
-            if cliente_encontrado:
-                print("\n=== CLIENTE ENCONTRADO ===")
-                print(f"CPF: {cliente_encontrado['cpf']}")
-                print(f"Nome: {cliente_encontrado['nome']}")
-                print(f"Data de Nascimento: {cliente_encontrado['data_nascimento']}")
-                print(f"Telefone: {cliente_encontrado['numero_telefone']}")
-            else:
-                print("Cliente não encontrado!")
-
-        elif opcao == "5":
-            if not lista_clientes:
-                print("\nNenhum cliente cadastrado.")
-            else:
-                print("\n=== LISTA DE CLIENTES ===")
-                for i, c in enumerate(lista_clientes, start=1):
-                    print(f"{i}. CPF: {c['cpf']} | Nome: {c['nome']} | Tel: {c['numero_telefone']}")
-
-        elif opcao == "6":
-            if not lista_agencias:
-                print("\nNenhuma agência cadastrada.")
-            else:
-                print("\n=== LISTA DE AGÊNCIAS ===")
-                for i, a in enumerate(lista_agencias, start=1):
-                    print(f"{i}. Código: {a['codigo_agencia']} | Nome: {a['nome_agencia']}")
-
-        elif opcao == "7":
-            conta.listar_contas(lista_contas)
-
-        elif opcao == "8":
-            conta.sacar(lista_contas)
-
-        elif opcao == "9":
-            conta.depositar(lista_contas)
-
-        elif opcao == "10":
-            conta.transferir(lista_contas)
-
-        elif opcao == "11":
-            conta.consultar_saldo(lista_contas)
-
-        elif opcao == "12":
-            codigo = input("Digite o código da agência: ").strip()
-            agencia_encontrada = agencia.procurar_agencia(lista_agencias, codigo)
-            if agencia_encontrada:
-                total = conta.calcular_montante_agencia(lista_contas, codigo)
-                print(
-                    f"Montante Total na Agência {agencia_encontrada['codigo_agencia']} "
-                    f"({agencia_encontrada['nome_agencia']}): R$ {total:.2f}"
-                )
-            else:
-                print("Agência não encontrada.")
-
-        elif opcao == "13":
-            total_banco = conta.calcular_montante_banco(lista_contas)
-            print(f"Montante Total no Banco Mister: R$ {total_banco:.2f}")
-
-        elif opcao == "14":
-            conta.aplicar_rendimento(lista_contas)
-
-        elif opcao == "0":
-            conta.salvar_dados_json(lista_clientes, lista_agencias, lista_contas)
-            print("Dados salvos em banco_dados.json com sucesso!")
-            print("Saindo do programa...")
+        if opcao == "0":
+            salvar_dados()
             break
 
+        acao = ACOES.get(opcao)
+        if acao:
+            acao()
         else:
             print("Opção inválida! Tente novamente.")
 
-menu_principal()
+
+if __name__ == "__main__":
+    menu_principal()
