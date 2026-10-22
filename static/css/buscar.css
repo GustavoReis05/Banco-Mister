@@ -1,0 +1,44 @@
+main {
+    max-width: 850px;
+}
+
+main h2 {
+    text-align: center;
+    color: #123b66;
+}
+
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    border-top: 4px solid #2563eb;
+}
+
+form input,
+form select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+}
+
+form button {
+    background: #2563eb;
+    width: 100%;
+}
+
+form button:hover {
+    background: #1d4ed8;
+}
+
+.resultado {
+    background: #eff6ff;
+    padding: 20px;
+    margin-top: 20px;
+    border-left: 4px solid #2563eb;
+    border-radius: 8px;
+}
+
+.resultado p {
+    margin: 8px 0;
+}

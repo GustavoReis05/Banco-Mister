@@ -1,0 +1,46 @@
+main {
+    max-width: 1200px;
+}
+
+main h2 {
+    color: #123b66;
+    text-align: center;
+}
+
+main h3 {
+    color: #1763a6;
+    margin-top: 25px;
+}
+
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    box-shadow: 0 2px 8px #0002;
+}
+
+thead {
+    background: #123b66;
+    color: white;
+}
+
+th, td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+tbody tr:nth-child(even) {
+    background: #f1f5f9;
+}
+
+tbody tr:hover {
+    background: #dbeafe;
+}
+
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}

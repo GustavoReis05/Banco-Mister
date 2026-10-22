@@ -1,0 +1,40 @@
+main {
+    max-width: 950px;
+}
+
+main h2 {
+    text-align: center;
+    color: #123b66;
+}
+
+main h3 {
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 10px;
+}
+
+form {
+    border-top: 4px solid #1763a6;
+}
+
+form label {
+    color: #25476b;
+    font-size: 14px;
+}
+
+form input,
+form select {
+    background: #f8fafc;
+}
+
+form button {
+    background: #1763a6;
+    width: 100%;
+}
+
+form button:hover {
+    background: #0f4577;
+}
+
+form + form {
+    margin-top: 30px;
+}
