@@ -106,13 +106,31 @@ OPERACOES = {
 }
 
 
-# ---------- Rotas ----------
-
-# Página inicial
+"""Dashboard e inicialização do index.html"""
 @app.route("/")
 def inicio():
-    return render_template("index.html")
+    dados = carregar_dados()
 
+    listagens = {
+        "numero_clientes": (
+            cliente.listar_clientes,
+            dados["clientes"],
+        ),
+        "numero_agencias": (
+            agencia.listar_agencias,
+            dados["agencias"],
+        ),
+        "numero_contas": (
+            conta.listar_contas,
+            dados["contas"],
+        ),
+    }
+
+    quantidades = {nome: len(listar(registros)) for nome, (listar, registros) in listagens.items()}
+
+    indicadores_saldos = conta.calcular_indicadores_saldos(dados["contas"])
+
+    return render_template("index.html", **quantidades, **indicadores_saldos,montante_total=indicadores_saldos["saldo_total"])
 
 # Página de cadastros
 @app.route("/cadastro")
@@ -199,7 +217,7 @@ def pagina_busca():
         resultado=resultado, mensagem=mensagem,
     )
 
-
+"""Operações do banco"""
 @app.route("/operacoes", methods=["GET", "POST"])
 def pagina_operacoes():
     if request.method == "POST":
@@ -217,6 +235,21 @@ def pagina_operacoes():
             flash(mensagem)
         return redirect(url_for("pagina_operacoes"))
     return render_template("operacoes.html")
+
+
+@app.route("/min_max_saldo")
+def pagina_extremos_saldos():
+    dados = carregar_dados()
+
+    extremos = conta.encontrar_menor_maior_saldo(
+        dados["contas"]
+    )
+
+    return render_template(
+        "min_max_saldo.html",
+        possui_contas=bool(dados["contas"]),
+        **extremos,
+    )
 
 
 # Inicialização do servidor

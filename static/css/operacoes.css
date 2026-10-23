@@ -1,60 +1,46 @@
-main {
-    max-width: 900px;
-}
+@import url("style.css");
 
-main h2 {
-    color: #123b66;
-    text-align: center;
-}
-
-form {
-    background: white;
-    border-radius: 10px;
-    padding: 30px;
+section {
     border-top: 4px solid #059669;
 }
 
-form label {
-    color: #123b66;
+label {
+    display: block;
+    margin-bottom: 6px;
     font-weight: bold;
 }
 
-form input,
-form select {
+input:not([type="hidden"]) {
     width: 100%;
     padding: 12px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
+    background: #f8fafc;
+    font: inherit;
 }
 
-form button {
-    width: 100%;
+input:focus {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
+}
+
+button {
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 6px;
     background: #059669;
     color: white;
-    padding: 14px;
-    border-radius: 6px;
+    cursor: pointer;
 }
 
-form button:hover {
+button:hover {
     background: #047857;
 }
 
-.saldo {
-    color: #047857;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.erro {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 15px;
-    border-radius: 6px;
-}
-
-.sucesso {
-    background: #dcfce7;
-    color: #166534;
-    padding: 15px;
+[role="status"] {
+    padding: 16px;
+    margin-bottom: 20px;
+    background: #eff6ff;
+    border-left: 4px solid #1763a6;
     border-radius: 6px;
 }

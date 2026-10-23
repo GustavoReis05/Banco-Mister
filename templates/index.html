@@ -9,6 +9,43 @@
 </head>
 <body>
 
+    <section aria-labelledby="titulo-dashboard">
+    <h2 id="titulo-dashboard">DASHBOARD</h2>
+
+    <div class="dashboard">
+        <article class="indicador">
+            <h3>Contas</h3>
+            <p class="indicador-valor">{{ numero_contas }}</p>
+        </article>
+
+        <article class="indicador">
+            <h3>Clientes</h3>
+            <p class="indicador-valor">{{ numero_clientes }}</p>
+        </article>
+
+        <article class="indicador">
+            <h3>Agências</h3>
+            <p class="indicador-valor">{{ numero_agencias }}</p>
+        </article>
+
+        {% for titulo, valor in [
+            ('Montante total do banco', montante_total),
+            ('Maior saldo', maior_saldo),
+            ('Saldo médio por conta', saldo_medio)
+        ] %}
+        <article class="indicador indicador-montante">
+            <h3>{{ titulo }}</h3>
+            <p class="indicador-valor">
+                R$ {{ "{:,.2f}".format(valor)
+                    .replace(",", "_")
+                    .replace(".", ",")
+                    .replace("_", ".") }}
+            </p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
     <header>
     <h1>
         BANCO MISTER
@@ -32,6 +69,7 @@
                 <li><a href="/busca">2 - Buscar</a></li>
                 <li><a href="/lista">3 - Listar</a></li>
                 <li><a href="/operacoes">4 - Operações</a></li>
+                <li><a href="{{ url_for('pagina_extremos_saldos') }}">5 - Consultar menor e maior saldo</a></li>
             </ul>
         </nav>
     </main>

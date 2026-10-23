@@ -1,40 +1,53 @@
-main {
-    max-width: 950px;
-}
+@import url("style.css");
 
-main h2 {
-    text-align: center;
-    color: #123b66;
-}
-
-main h3 {
-    border-bottom: 2px solid #2563eb;
-    padding-bottom: 10px;
-}
-
-form {
+section {
     border-top: 4px solid #1763a6;
 }
 
-form label {
-    color: #25476b;
-    font-size: 14px;
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
 }
 
-form input,
-form select {
-    background: #f8fafc;
-}
-
-form button {
-    background: #1763a6;
+input,
+select {
     width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    font: inherit;
 }
 
-form button:hover {
-    background: #0f4577;
+input:focus,
+select:focus {
+    outline: 2px solid #1763a6;
+    outline-offset: 2px;
 }
 
-form + form {
-    margin-top: 30px;
+button {
+    padding: 12px 18px;
+    margin: 4px 0;
+    border: 0;
+    border-radius: 6px;
+    background: #1763a6;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #123b66;
+}
+
+button[type="reset"] {
+    background: #64748b;
+}
+
+[role="status"] {
+    padding: 16px;
+    margin-bottom: 20px;
+    background: #eff6ff;
+    border-left: 4px solid #1763a6;
+    border-radius: 6px;
 }

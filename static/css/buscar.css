@@ -1,44 +1,63 @@
-main {
-    max-width: 850px;
-}
+@import url("style.css");
 
-main h2 {
-    text-align: center;
-    color: #123b66;
-}
-
-form {
+form,
+section {
+    padding: 24px;
+    margin-bottom: 20px;
     background: white;
-    padding: 30px;
+    border-top: 4px solid #1763a6;
     border-radius: 10px;
-    border-top: 4px solid #2563eb;
 }
 
-form input,
-form select {
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+input,
+select {
     width: 100%;
     padding: 12px;
-    border-radius: 6px;
     border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    font: inherit;
 }
 
-form button {
-    background: #2563eb;
-    width: 100%;
+input:focus,
+select:focus {
+    outline: 2px solid #1763a6;
+    outline-offset: 2px;
 }
 
-form button:hover {
-    background: #1d4ed8;
+button {
+    padding: 12px 20px;
+    margin-right: 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #1763a6;
+    color: white;
+    cursor: pointer;
 }
 
-.resultado {
+button:hover {
+    background: #123b66;
+}
+
+dt {
+    margin-top: 14px;
+    font-weight: bold;
+}
+
+dd {
+    margin: 6px 0;
+    overflow-wrap: anywhere;
+}
+
+[role="status"] {
+    padding: 16px;
     background: #eff6ff;
-    padding: 20px;
-    margin-top: 20px;
-    border-left: 4px solid #2563eb;
-    border-radius: 8px;
-}
-
-.resultado p {
-    margin: 8px 0;
+    border-left: 4px solid #1763a6;
+    border-radius: 6px;
 }

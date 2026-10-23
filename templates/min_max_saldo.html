@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Menor e maior saldo - Banco Mister</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+<body>
+    <header>
+        <h1>BANCO MISTER</h1>
+        <p>Consulta de saldos</p>
+    </header>
+
+    <main>
+        <section aria-labelledby="titulo-saldos">
+            <h2 id="titulo-saldos">Menor e maior saldo</h2>
+
+            {% if possui_contas %}
+                <div class="dashboard">
+                    {% for titulo, valor in [
+                        ('Menor saldo', menor_saldo),
+                        ('Maior saldo', maior_saldo)
+                    ] %}
+                    <article class="indicador indicador-montante">
+                        <h3>{{ titulo }}</h3>
+
+                        <p class="indicador-valor">
+                            R$ {{ "{:,.2f}".format(valor)
+                                .replace(",", "_")
+                                .replace(".", ",")
+                                .replace("_", ".") }}
+                        </p>
+                    </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Nenhuma conta cadastrada.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        <a href="{{ url_for('inicio') }}">
+            Voltar ao Menu Principal
+        </a>
+    </footer>
+</body>
+</html>

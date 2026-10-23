@@ -18,9 +18,6 @@ OPERACOES_PERMITIDAS = {
     "salário": {"sacar", "depositar"},  # salário não pode transferir
 }
 
-# A poupança está rendendo a Taxa Selic, que está a 13,75% ao ano
-TAXA_ANUAL_POUPANCA = 0.1375
-
 
 # ---------- Funções de ordem superior reutilizáveis ----------
 
@@ -177,21 +174,39 @@ def transferir(lista_contas, numero_origem=None, numero_destino=None, valor=None
     return "Transferência realizada com sucesso!"
 
 
-def consultar_saldo(lista_contas):
-    c = conta_por_numero(lista_contas, input("Número da Conta: "))
-    if c:
-        print(f"Saldo da Conta {c['numero_conta']}: R$ {c['saldo_conta']:.2f}")
-    else:
-        print("Conta não encontrada!")
+
+def encontrar_menor_maior_saldo(lista_contas):
+    """Retorna o menor e o maior saldo das contas"""
+    saldos = [conta["saldo_conta"] for conta in lista_contas]
+
+    calculos = {"menor_saldo": min,"maior_saldo": max}
+
+    return {
+        nome: calcular(saldos, default=0.0)
+        for nome, calcular in calculos.items()
+    }
 
 
-# ---------- Rendimento da poupança ----------
+'''Funçao que retorna os valores para o dashboard'''
+def calcular_indicadores_saldos(lista_contas):
 
-def render_conta(conta, fator):
-    """Aplica o fator à conta. Retorna (atualizada, mensagem)."""
-    saldo_antigo = conta["saldo_conta"]
-    if saldo_antigo <= 0:
-        return False, f"Conta {conta['numero_conta']}: saldo zerado, deposite antes para render."
+    saldos = [registro["saldo_conta"] for registro in lista_contas]
 
-    novo_saldo = round(saldo_antigo * fator, 2)
-    conta["saldo_conta"]
+    calculos = {
+        "saldo_total": somar_saldos,
+        "maior_saldo": lambda contas: max(
+            [registro["saldo_conta"] for registro in contas],
+            default=0.0,
+         ),
+    }
+
+    indicadores = {
+        nome: calcular(lista_contas)
+        for nome, calcular in calculos.items()
+    }
+
+    indicadores["saldo_medio"] = (
+        indicadores["saldo_total"] / len(saldos)
+        if saldos else 0.0
+    )
+    return indicadores
