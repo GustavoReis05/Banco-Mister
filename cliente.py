@@ -1,103 +1,168 @@
+
 from datetime import date
 
-CAMPOS_CLIENTE = ("cpf", "nome", "data_nascimento", "numero_telefone")
-CARACTERES_CPF = set("0123456789.-")
 
+class Cliente:
 
-def primeiro(predicado, lista):
-    """Função de ordem superior: retorna o 1º item que satisfaz o predicado, ou None."""
-    return next(filter(predicado, lista), None)
+    def __init__(self, cpf, nome, data_nascimento, numero_telefone):
 
+        self.cpf = self.formatar_cpf(cpf)
+        self.nome = str(nome).strip()
+        self.data_nascimento = str(data_nascimento).strip()
+        self.numero_telefone = str(numero_telefone).strip()
 
-def normalizar(texto):
-    return str(texto).strip().lower()
+        if not all((
+            self.cpf,
+            self.nome,
+            self.data_nascimento,
+            self.numero_telefone
+        )):
+            raise ValueError("Preencha todos os campos do cliente.")
 
+        if not self.validar_cpf(cpf):
+            raise ValueError("CPF inválido.")
 
-def somente_digitos(texto):
-    """Remove tudo que não for número."""
-    return "".join(filter(str.isdigit, str(texto)))
+        try:
+            nascimento = date.fromisoformat(self.data_nascimento)
+        except ValueError:
+            raise ValueError("Data de nascimento inválida.")
 
+        if nascimento > date.today():
+            raise ValueError("A data de nascimento não pode estar no futuro.")
 
-def digito_verificador(numeros, posicao):
-    """Calcula o dígito verificador da posição 9 (1º) ou 10 (2º)."""
-    pesos = range(posicao + 1, 1, -1)
-    soma = sum(int(n) * peso for n, peso in zip(numeros[:posicao], pesos))
-    return (soma * 10 % 11) % 10
+    @staticmethod
+    def somente_digitos(texto):
+        """Remove tudo que não for número."""
+        return "".join(filter(str.isdigit, str(texto)))
 
+    @staticmethod
+    def formatar_cpf(cpf):
+        """Formata o CPF."""
+        n = Cliente.somente_digitos(cpf)
 
-def validar_cpf(cpf):
-    """Retorna True se o CPF for válido (formato e dígitos verificadores)."""
-    if not all(ch in CARACTERES_CPF for ch in cpf):
-        return False
+        if len(n) != 11:
+            return str(cpf).strip()
 
-    numeros = somente_digitos(cpf)
+        return f"{n[:3]}.{n[3:6]}.{n[6:9]}-{n[9:]}"
 
-    # Precisa ter 11 dígitos e não pode ser sequência repetida (111.111.111-11)
-    if len(numeros) != 11 or numeros == numeros[0] * 11:
-        return False
+    @staticmethod
+    def digito_verificador(numeros, posicao):
+        """Calcula os dígitos verificadores do CPF."""
+        pesos = range(posicao + 1, 1, -1)
 
-    return all(digito_verificador(numeros, p) == int(numeros[p]) for p in (9, 10))
+        soma = sum(
+            int(n) * peso
+            for n, peso in zip(numeros[:posicao], pesos)
+        )
 
+        return (soma * 10 % 11) % 10
 
-def formatar_cpf(cpf):
-    """Formata 12345678909 como 123.456.789-09."""
-    n = somente_digitos(cpf)
-    return f"{n[:3]}.{n[3:6]}.{n[6:9]}-{n[9:]}"
+    @staticmethod
+    def validar_cpf(cpf):
+        """Verifica se o CPF é válido."""
 
+        cpf = str(cpf).strip()
 
-def cadastrar_cliente(lista_clientes, cpf, nome, data_nascimento, numero_telefone):
-    cpf, nome, data_nascimento, numero_telefone = map(
-        str.strip, (cpf, nome, data_nascimento, numero_telefone)
-    )
+        if not all(ch in set("0123456789.-") for ch in cpf):
+            return False
 
-    if not all((cpf, nome, data_nascimento, numero_telefone)):
-        raise ValueError("Preencha todos os campos do cliente.")
+        numeros = Cliente.somente_digitos(cpf)
 
-    if not validar_cpf(cpf):
-        raise ValueError("CPF inválido.")
+        if len(numeros) != 11 or numeros == numeros[0] * 11:
+            return False
 
-    cpf_digitos = somente_digitos(cpf)
-    if any(somente_digitos(c["cpf"]) == cpf_digitos for c in lista_clientes):
-        raise ValueError("Já existe um cliente com esse CPF.")
+        return all(
+            Cliente.digito_verificador(numeros, p) == int(numeros[p])
+            for p in (9, 10)
+        )
 
-    try:
-        nascimento = date.fromisoformat(data_nascimento)
-    except ValueError:
-        raise ValueError("Data de nascimento inválida.")
+    @staticmethod
+    def cadastrar(lista_clientes, cpf, nome, data_nascimento, numero_telefone):
+        """Cadastra um novo cliente."""
 
-    if nascimento > date.today():
-        raise ValueError("A data de nascimento não pode estar no futuro.")
+        if not Cliente.validar_cpf(cpf):
+            raise ValueError("CPF inválido.")
 
-    valores = (formatar_cpf(cpf), nome, data_nascimento, numero_telefone)
-    return {campo: valor for campo, valor in zip(CAMPOS_CLIENTE, valores)}
+        cpf_digitos = Cliente.somente_digitos(cpf)
 
+        for cliente in lista_clientes:
+            if Cliente.somente_digitos(cliente.cpf) == cpf_digitos:
+                raise ValueError("Já existe um cliente com esse CPF.")
 
-def procurar_cliente(lista_clientes, termo_busca, exibir=True):
-    """Busca um cliente pelo CPF ou nome (ignora maiúsculas e pontuação do CPF)."""
-    termo = normalizar(termo_busca)
-    if not termo:
+        novo_cliente = Cliente(
+            cpf,
+            nome,
+            data_nascimento,
+            numero_telefone
+        )
+
+        lista_clientes.append(novo_cliente)
+
+        return novo_cliente
+
+    @staticmethod
+    def procurar(lista_clientes, termo_busca, exibir=True):
+        """Busca cliente pelo CPF ou nome."""
+
+        termo = str(termo_busca).strip().lower()
+
+        if not termo:
+            return None
+
+        termo_cpf = Cliente.somente_digitos(termo)
+
+        # Busca exata por CPF ou nome
+        for cliente in lista_clientes:
+
+            cpf_cliente = Cliente.somente_digitos(cliente.cpf)
+
+            if cpf_cliente == termo_cpf or cliente.nome.lower() == termo:
+                return cliente
+
+        # Busca por parte do nome
+        candidatos = [
+            cliente for cliente in lista_clientes
+            if termo in cliente.nome.lower()
+        ]
+
+        if len(candidatos) == 1:
+            return candidatos[0]
+
+        if len(candidatos) > 1 and exibir:
+            print(
+                "Mais de um cliente com esse nome. "
+                "Digite o nome completo ou o CPF."
+            )
+
         return None
 
-    termo_cpf = termo.replace(".", "").replace("-", "")
+    @staticmethod
+    def listar(lista_clientes, filtro=None):
+        """Lista os clientes, permitindo aplicar filtros."""
 
-    # 1) Correspondência exata de CPF ou nome
-    exato = primeiro(
-        lambda c: str(c.get("cpf", "")).replace(".", "").replace("-", "") == termo_cpf
-        or normalizar(c.get("nome", "")) == termo,
-        lista_clientes,
-    )
-    if exato:
-        return exato
+        if filtro is None:
+            return lista_clientes
 
-    # 2) Trecho do nome, só se houver exatamente um cliente que combine
-    candidatos = [c for c in lista_clientes if termo in normalizar(c.get("nome", ""))]
-    if len(candidatos) == 1:
-        return candidatos[0]
-    if len(candidatos) > 1 and exibir:
-        print("Mais de um cliente com esse nome. Digite o nome completo ou o CPF.")
-    return None
+        return [
+            cliente for cliente in lista_clientes
+            if filtro(cliente)
+        ]
 
+    def __str__(self):
+        return (
+            f"CPF: {self.cpf} | "
+            f"Nome:from datetime import date, datetime
 
-def listar_clientes(lista_clientes, filtro=lambda cliente: True):
-    """Retorna os clientes cadastrados, opcionalmente filtrados por uma função."""
-    return [cliente for cliente in lista_clientes if filtro(cliente)]
+try:
+    nascimento = datetime.strptime(self.data_nascimento, "%d/%m/%Y").date()
+except ValueError:
+    raise ValueError("Data de nascimento inválida. Use dd/mm/aaaa.")
+
+if nascimento > date.today():
+    raise ValueError("A data de nascimento não pode estar no futuro.")
+
+self.data_nascimento = nascimento {self.nome} | "
+            f"Data de nascimento: {self.data_nascimento} | "
+            f"Telefone: {self.numero_telefone}"
+        )
+
