@@ -1,212 +1,289 @@
+
 import math
-from agencia import procurar_agencia
-from cliente import procurar_cliente
-
-# Estrutura da conta (dicionário):
-# {'numero_conta', 'cpf', 'agencia_cod', 'saldo_conta', 'tipo'}
-
-TIPOS_CONTA = {
-    "1": "poupança",
-    "2": "corrente",
-    "3": "salário",
-}
-
-# Operações permitidas para cada tipo de conta
-OPERACOES_PERMITIDAS = {
-    "poupança": {"sacar", "depositar", "transferir"},
-    "corrente": {"sacar", "depositar", "transferir"},
-    "salário": {"sacar", "depositar"},  # salário não pode transferir
-}
+from agencia import Agencia
+from cliente import Cliente
 
 
-# ---------- Funções de ordem superior reutilizáveis ----------
+class Conta:
 
-def buscar_por(campo):
-    """Recebe um campo e retorna uma função de busca por esse campo."""
-    return lambda lista, valor: next(
-        filter(lambda item: item[campo] == valor, lista), None
-    )
+    TIPOS_CONTA = {
+        "1": "poupança",
+        "2": "corrente",
+        "3": "salário",
+    }
 
+    OPERACOES_PERMITIDAS = {
+        "poupança": {"sacar", "depositar", "transferir"},
+        "corrente": {"sacar", "depositar", "transferir"},
+        "salário": {"sacar", "depositar"},
+    }
 
-def somar_saldos(contas):
-    """Soma os saldos de qualquer coleção de contas."""
-    return sum((conta["saldo_conta"] for conta in contas), 0.0)
+    def __init__(self, numero_conta, cpf, agencia_cod, tipo, saldo_conta=0.0):
 
+        self.numero_conta = str(numero_conta).strip()
+        self.cpf = str(cpf).strip()
+        self.agencia_cod = str(agencia_cod).strip()
+        self.tipo = str(tipo).strip()
+        self.saldo_conta = float(saldo_conta)
 
-procurar_conta = buscar_por("numero_conta")
+        if not all((
+            self.numero_conta,
+            self.cpf,
+            self.agencia_cod,
+            self.tipo
+        )):
+            raise ValueError("Preencha todos os campos da conta.")
 
+        if self.tipo not in self.TIPOS_CONTA.values():
+            raise ValueError("Tipo de conta inválido.")
 
-def conta_por_numero(lista_contas, numero):
-    """Busca a conta tolerando entrada não-string e espaços."""
-    return procurar_conta(lista_contas, str(numero).strip())
+        if not math.isfinite(self.saldo_conta) or self.saldo_conta < 0:
+            raise ValueError("Saldo inicial inválido.")
 
+    # ---------- Cadastro ----------
 
-# ---------- Cadastro ----------
+    @staticmethod
+    def cadastrar(
+        lista_clientes,
+        lista_agencias,
+        lista_contas,
+        termo_busca,
+        agencia_cod,
+        numero_conta,
+        tipo
+    ):
+        """Cadastra uma nova conta."""
 
-def cadastrar_conta(
-    lista_clientes,
-    lista_agencias,
-    lista_contas,
-    termo_busca,
-    agencia_cod,
-    numero_conta,
-    tipo,
-):
-    termo_busca, agencia_cod, numero_conta, tipo = map(
-        str.strip, (termo_busca, agencia_cod, numero_conta, tipo)
-    )
-
-    if not all((termo_busca, agencia_cod, numero_conta, tipo)):
-        raise ValueError("Preencha todos os campos da conta.")
-
-    cliente_encontrado = procurar_cliente(lista_clientes, termo_busca)
-    if not cliente_encontrado:
-        raise ValueError(
-            "Cliente não encontrado ou nome ambíguo. "
-            "Informe o CPF ou o nome completo."
+        termo_busca, agencia_cod, numero_conta, tipo = map(
+            str.strip,
+            (termo_busca, agencia_cod, numero_conta, tipo)
         )
 
-    if not procurar_agencia(lista_agencias, agencia_cod):
-        raise ValueError("Agência não encontrada.")
+        if not all((termo_busca, agencia_cod, numero_conta, tipo)):
+            raise ValueError("Preencha todos os campos da conta.")
 
-    if procurar_conta(lista_contas, numero_conta):
-        raise ValueError("Já existe uma conta com esse número.")
+        cliente = Cliente.procurar(lista_clientes, termo_busca)
 
-    if tipo not in TIPOS_CONTA.values():
-        raise ValueError("Tipo de conta inválido.")
+        if not cliente:
+            raise ValueError(
+                "Cliente não encontrado ou nome ambíguo. "
+                "Informe o CPF ou o nome completo."
+            )
 
-    return {
-        "numero_conta": numero_conta,
-        "cpf": cliente_encontrado["cpf"],
-        "agencia_cod": agencia_cod,
-        "saldo_conta": 0.0,
-        "tipo": tipo,
-    }
+        agencia = Agencia.buscar_por_codigo(lista_agencias, agencia_cod)
 
+        if not agencia:
+            raise ValueError("Agência não encontrada.")
 
-def listar_contas(lista_contas, filtro=lambda conta: True):
-    """Retorna as contas cadastradas, opcionalmente filtradas por uma função."""
-    return [conta for conta in lista_contas if filtro(conta)]
+        if Conta.buscar_por_numero(lista_contas, numero_conta):
+            raise ValueError("Já existe uma conta com esse número.")
 
+        if tipo not in Conta.TIPOS_CONTA.values():
+            raise ValueError("Tipo de conta inválido.")
 
-# ---------- Validações ----------
-
-def operacao_permitida(conta, operacao):
-    """Verifica se o tipo da conta permite a operação."""
-    return operacao in OPERACOES_PERMITIDAS.get(conta.get("tipo"), set())
-
-
-def atualizar_saldo(lista_contas, numero, novo_saldo):
-    """Atualiza o saldo de uma conta específica (se ela existir)."""
-    conta = procurar_conta(lista_contas, numero)
-    if conta:
-        conta["saldo_conta"] = novo_saldo
-
-
-def validar_valor_operacao(valor):
-    """Converte reais com ponto ou vírgula e rejeita valores inválidos."""
-    try:
-        valor = float(str(valor).strip().replace(",", "."))
-    except (TypeError, ValueError):
-        raise ValueError("Valor inválido! Digite apenas números.")
-    if not math.isfinite(valor) or valor <= 0:
-        raise ValueError("O valor deve ser finito e maior que zero.")
-    if round(valor, 2) != valor:
-        raise ValueError("Informe um valor com no máximo duas casas decimais.")
-    return valor
-
-
-def validar_conta_operacao(lista_contas, numero, operacao):
-    c = conta_por_numero(lista_contas, numero)
-    if c is None:
-        raise ValueError("Conta não encontrada!")
-    if not operacao_permitida(c, operacao):
-        raise ValueError(
-            f"A conta {c['numero_conta']} ({c['tipo']}) não pode realizar: {operacao}."
+        nova_conta = Conta(
+            numero_conta,
+            cliente.cpf,
+            agencia_cod,
+            tipo
         )
-    return c
 
+        lista_contas.append(nova_conta)
 
-def validar_saldo_finito(saldo, mensagem):
-    if not math.isfinite(saldo):
-        raise ValueError(mensagem)
-    return saldo
+        return nova_conta
 
+    # ---------- Busca e listagem ----------
 
-# ---------- Operações ----------
+    @staticmethod
+    def buscar_por_numero(lista_contas, numero):
+        """Busca uma conta pelo número."""
 
-def sacar(lista_contas, numero=None, valor=None):
-    c = validar_conta_operacao(lista_contas, numero, "sacar")
-    valor = validar_valor_operacao(valor)
-    if valor > c["saldo_conta"]:
-        raise ValueError("Saldo insuficiente.")
-    atualizar_saldo(lista_contas, c["numero_conta"], round(c["saldo_conta"] - valor, 2))
-    return f"Saque de R$ {valor:.2f} realizado com sucesso!"
+        numero = str(numero).strip()
 
+        for conta in lista_contas:
+            if conta.numero_conta == numero:
+                return conta
 
-def depositar(lista_contas, numero=None, valor=None):
-    c = validar_conta_operacao(lista_contas, numero, "depositar")
-    valor = validar_valor_operacao(valor)
-    novo_saldo = validar_saldo_finito(
-        round(c["saldo_conta"] + valor, 2),
-        "Valor inválido para o saldo da conta.",
-    )
-    atualizar_saldo(lista_contas, c["numero_conta"], novo_saldo)
-    return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
+        return None
 
+    @staticmethod
+    def listar(lista_contas, filtro=None):
+        """Lista as contas, permitindo aplicar filtros."""
 
-def transferir(lista_contas, numero_origem=None, numero_destino=None, valor=None):
-    origem = validar_conta_operacao(lista_contas, numero_origem, "transferir")
-    destino = conta_por_numero(lista_contas, numero_destino)
-    if destino is None:
-        raise ValueError("Conta de destino não encontrada!")
-    if origem["numero_conta"] == destino["numero_conta"]:
-        raise ValueError("A conta de origem e a de destino devem ser diferentes.")
-    valor = validar_valor_operacao(valor)
-    if valor > origem["saldo_conta"]:
-        raise ValueError("Saldo insuficiente.")
-    saldo_destino = validar_saldo_finito(
-        round(destino["saldo_conta"] + valor, 2),
-        "Valor inválido para o saldo da conta de destino.",
-    )
-    atualizar_saldo(lista_contas, origem["numero_conta"], round(origem["saldo_conta"] - valor, 2))
-    atualizar_saldo(lista_contas, destino["numero_conta"], saldo_destino)
-    return "Transferência realizada com sucesso!"
+        if filtro is None:
+            return lista_contas
 
+        return [
+            conta for conta in lista_contas
+            if filtro(conta)
+        ]
 
+    # ---------- Validações ----------
 
-def encontrar_menor_maior_saldo(lista_contas):
-    """Retorna o menor e o maior saldo das contas"""
-    saldos = [conta["saldo_conta"] for conta in lista_contas]
+    def operacao_permitida(self, operacao):
+        """Verifica se o tipo da conta permite a operação."""
 
-    calculos = {"menor_saldo": min,"maior_saldo": max}
+        return operacao in self.OPERACOES_PERMITIDAS.get(
+            self.tipo, set()
+        )
 
-    return {
-        nome: calcular(saldos, default=0.0)
-        for nome, calcular in calculos.items()
-    }
+    def validar_operacao(self, operacao):
+        """Verifica se a conta pode realizar a operação."""
 
+        if not self.operacao_permitida(operacao):
+            raise ValueError(
+                f"A conta {self.numero_conta} ({self.tipo}) "
+                f"não pode realizar: {operacao}."
+            )
 
-'''Funçao que retorna os valores para o dashboard'''
-def calcular_indicadores_saldos(lista_contas):
+    @staticmethod
+    def validar_valor_operacao(valor):
+        """Valida o valor informado para operações bancárias."""
 
-    saldos = [registro["saldo_conta"] for registro in lista_contas]
+        try:
+            valor = float(
+                str(valor).strip().replace(",", ".")
+            )
+        except (TypeError, ValueError):
+            raise ValueError(
+                "Valor inválido! Digite apenas números."
+            )
 
-    calculos = {
-        "saldo_total": somar_saldos,
-        "maior_saldo": lambda contas: max(
-            [registro["saldo_conta"] for registro in contas],
-            default=0.0,
-         ),
-    }
+        if not math.isfinite(valor) or valor <= 0:
+            raise ValueError(
+                "O valor deve ser finito e maior que zero."
+            )
 
-    indicadores = {
-        nome: calcular(lista_contas)
-        for nome, calcular in calculos.items()
-    }
+        if round(valor, 2) != valor:
+            raise ValueError(
+                "Informe um valor com no máximo duas casas decimais."
+            )
 
-    indicadores["saldo_medio"] = (
-        indicadores["saldo_total"] / len(saldos)
-        if saldos else 0.0
-    )
-    return indicadores
+        return valor
+
+    @staticmethod
+    def validar_saldo_finito(saldo, mensagem):
+        if not math.isfinite(saldo):
+            raise ValueError(mensagem)
+
+        return saldo
+
+    # ---------- Operações bancárias ----------
+
+    def sacar(self, valor):
+        """Realiza um saque na conta."""
+
+        self.validar_operacao("sacar")
+
+        valor = self.validar_valor_operacao(valor)
+
+        if valor > self.saldo_conta:
+            raise ValueError("Saldo insuficiente.")
+
+        self.saldo_conta = round(
+            self.saldo_conta - valor, 2
+        )
+
+        return f"Saque de R$ {valor:.2f} realizado com sucesso!"
+
+    def depositar(self, valor):
+        """Realiza um depósito na conta."""
+
+        self.validar_operacao("depositar")
+
+        valor = self.validar_valor_operacao(valor)
+
+        novo_saldo = self.validar_saldo_finito(
+            round(self.saldo_conta + valor, 2),
+            "Valor inválido para o saldo da conta."
+        )
+
+        self.saldo_conta = novo_saldo
+
+        return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
+
+    def transferir(self, lista_contas, numero_destino, valor):
+        """Transfere dinheiro para outra conta."""
+
+        self.validar_operacao("transferir")
+
+        destino = Conta.buscar_por_numero(
+            lista_contas, numero_destino
+        )
+
+        if destino is None:
+            raise ValueError("Conta de destino não encontrada!")
+
+        if self.numero_conta == destino.numero_conta:
+            raise ValueError(
+                "A conta de origem e a de destino devem ser diferentes."
+            )
+
+        valor = self.validar_valor_operacao(valor)
+
+        if valor > self.saldo_conta:
+            raise ValueError("Saldo insuficiente.")
+
+        saldo_origem = round(
+            self.saldo_conta - valor, 2
+        )
+
+        saldo_destino = self.validar_saldo_finito(
+            round(destino.saldo_conta + valor, 2),
+            "Valor inválido para o saldo da conta de destino."
+        )
+
+        self.saldo_conta = saldo_origem
+        destino.saldo_conta = saldo_destino
+
+        return "Transferência realizada com sucesso!"
+
+    # ---------- Cálculos e indicadores ----------
+
+    @staticmethod
+    def somar_saldos(lista_contas):
+        """Soma os saldos de todas as contas."""
+
+        return sum(
+            (conta.saldo_conta for conta in lista_contas),
+            0.0
+        )
+
+    @staticmethod
+    def encontrar_menor_maior_saldo(lista_contas):
+        """Retorna o menor e o maior saldo das contas."""
+
+        saldos = [
+            conta.saldo_conta for conta in lista_contas
+        ]
+
+        return {
+            "menor_saldo": min(saldos, default=0.0),
+            "maior_saldo": max(saldos, default=0.0)
+        }
+
+    @staticmethod
+    def calcular_indicadores_saldos(lista_contas):
+        """Calcula os indicadores para o dashboard."""
+
+        saldos = [
+            conta.saldo_conta for conta in lista_contas
+        ]
+
+        total = Conta.somar_saldos(lista_contas)
+
+        return {
+            "saldo_total": total,
+            "maior_saldo": max(saldos, default=0.0),
+            "saldo_medio": total / len(saldos) if saldos else 0.0
+        }
+
+    def __str__(self):
+        return (
+            f"Conta: {self.numero_conta} | "
+            f"CPF: {self.cpf} | "
+            f"Agência: {self.agencia_cod} | "
+            f"Tipo: {self.tipo} | "
+            f"Saldo: R$ {self.saldo_conta:.2f}"
+        )
+
