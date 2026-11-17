@@ -9,7 +9,6 @@ class Conta:
     TIPOS_CONTA = {
         "1": "poupança",
         "2": "corrente",
-        "3": "salário",
     }
 
     OPERACOES_PERMITIDAS = {
