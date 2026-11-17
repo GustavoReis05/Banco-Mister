@@ -30,6 +30,26 @@ class Cliente:
         if nascimento > date.today():
             raise ValueError("A data de nascimento não pode estar no futuro.")
 
+        
+    def to_dict(self):
+        return {
+            "cpf": self.cpf,
+            "nome": self.nome,
+            "data_nascimento": self.data_nascimento,
+            "numero_telefone": self.numero_telefone
+        }
+
+
+
+    @classmethod
+    def from_dict(cls, dados):
+        return cls(
+            dados["cpf"],
+            dados["nome"],
+            dados["data_nascimento"],
+            dados["numero_telefone"]
+        )
+
     @staticmethod
     def somente_digitos(texto):
         """Remove tudo que não for número."""

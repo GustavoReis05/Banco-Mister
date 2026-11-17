@@ -28,23 +28,31 @@ class BancoMisterApp:
     def __init__(self, arquivo_dados=None):
         self.flask = Flask(__name__)
         self.flask.secret_key = "banco-mister"
-        self.repositorio = RepositorioJSON(arquivo_dados or Path(__file__).parent / "banco_dados.json")
+
+        self.repositorio = RepositorioJSON(
+            arquivo_dados or Path(__file__).parent / "banco_dados.json"
+        )
+
+        self.banco = Banco(self.repositorio)
+
         self._registrar_rotas()
 
     # ---------------------------------------------------------- utilitários
     def _banco(self):
-        return Banco(self.repositorio)
+        return self.banco
 
     def _cadastrar(self, acao, mensagem_sucesso, **campos):
         """Fluxo comum dos três cadastros."""
         banco = self._banco()
         try:
             acao(banco)(**{p: request.form.get(c, "") for p, c in campos.items()})
+
         except ValueError as erro:
             flash(str(erro))
+
         else:
-            banco.salvar()
             flash(mensagem_sucesso)
+
         return redirect(url_for("pagina_cadastro"))
 
     def _registrar_rotas(self):
@@ -132,12 +140,15 @@ class BancoMisterApp:
                 if executar is None:
                     raise ValueError("Selecione uma operação válida.")
                 mensagem = executar(banco, request.form)
+
             except ValueError as erro:
                 flash(str(erro))
+                
             else:
-                banco.salvar()
                 flash(mensagem)
+
             return redirect(url_for("pagina_operacoes"))
+        
         return render_template("operacoes.html")
 
     def pagina_extremos_saldos(self):
@@ -149,10 +160,14 @@ class BancoMisterApp:
         )
 
     def executar(self, **kwargs):
-        self.flask.run(**kwargs)
+        try:
+            self.flask.run(**kwargs)
+        finally:
+            self.banco.salvar()
 
 
-app = BancoMisterApp().flask  # exposto para `flask run` / gunicorn
+aplicacao = BancoMisterApp()
+app = aplicacao.flask
 
 if __name__ == "__main__":
-    BancoMisterApp().executar(debug=True)
+    aplicacao.executar(debug=False)
