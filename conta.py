@@ -12,12 +12,6 @@ class Conta(ABC):
         "2": "corrente",
     }
 
-    OPERACOES_PERMITIDAS = {
-        "poupança": {"sacar", "depositar", "transferir"},
-        "corrente": {"sacar", "depositar", "transferir"},
-        "salário": {"sacar", "depositar"},
-    }
-
     def __init__(self, numero_conta, cpf, agencia_cod, tipo, saldo_conta=0.0):
 
         self.numero_conta = str(numero_conta).strip()
