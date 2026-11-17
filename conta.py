@@ -9,7 +9,13 @@ class Conta(ABC):
 
     TIPOS_CONTA = {
         "1": "poupança",
-        "2": "corrente"
+        "2": "corrente",
+    }
+
+    OPERACOES_PERMITIDAS = {
+        "poupança": {"sacar", "depositar", "transferir"},
+        "corrente": {"sacar", "depositar", "transferir"},
+        "salário": {"sacar", "depositar"},
     }
 
     def __init__(self, numero_conta, cpf, agencia_cod, tipo, saldo_conta=0.0):
