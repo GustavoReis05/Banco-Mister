@@ -151,18 +151,7 @@ class Cliente:
     def __str__(self):
         return (
             f"CPF: {self.cpf} | "
-            f"Nome:from datetime import date, datetime
-
-try:
-    nascimento = datetime.strptime(self.data_nascimento, "%d/%m/%Y").date()
-except ValueError:
-    raise ValueError("Data de nascimento inválida. Use dd/mm/aaaa.")
-
-if nascimento > date.today():
-    raise ValueError("A data de nascimento não pode estar no futuro.")
-
-self.data_nascimento = nascimento {self.nome} | "
+            f"Nome: {self.nome} | "
             f"Data de nascimento: {self.data_nascimento} | "
             f"Telefone: {self.numero_telefone}"
         )
-

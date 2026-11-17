@@ -1,61 +1,33 @@
-Claude
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Banco · PY
 """Camada de serviço: guarda as coleções, aplica regras e persiste em JSON."""
 import json
 from pathlib import Path
- 
-from modelos import Agencia, Cliente, Conta, apenas_digitos, validar_valor_operacao
+from agencia import Agencia
+from modelos import Cliente, Conta, apenas_digitos, validar_valor_operacao
  
  
 class RepositorioJSON:
     """Responsável apenas por ler e gravar o arquivo."""
  
-    COLECOES = ("clientes", "agencias", "contas")
+    COLECOES = ("clientes", "contas")
  
     def __init__(self, caminho):
         self.caminho = Path(caminho)
  
     def carregar(self):
         if not self.caminho.exists():
-            return {colecao: [] for colecao in self.COLECOES}
+            raise FileNotFoundError(
+                "Arquivo de dados do banco não encontrado."
+            )
+
         with self.caminho.open("r", encoding="utf-8") as arquivo:
-            return json.load(arquivo)
+            dados = json.load(arquivo)
+
+        if not isinstance(dados.get("agencia"), dict):
+            raise ValueError(
+                "Agência não configurada no banco de dados."
+            )
+
+        return dados
  
     def salvar(self, dados):
         with self.caminho.open("w", encoding="utf-8") as arquivo:
@@ -66,14 +38,15 @@ class Banco:
     def __init__(self, repositorio):
         self._repositorio = repositorio
         dados = repositorio.carregar()
+
         self.clientes = [Cliente.from_dict(d) for d in dados.get("clientes", [])]
-        self.agencias = [Agencia.from_dict(d) for d in dados.get("agencias", [])]
+        self.agencia = Agencia.from_dict(dados["agencia"])
         self.contas = [Conta.from_dict(d) for d in dados.get("contas", [])]
  
     def salvar(self):
         self._repositorio.salvar({
             "clientes": [c.to_dict() for c in self.clientes],
-            "agencias": [a.to_dict() for a in self.agencias],
+            "agencia": self.agencia.to_dict(),
             "contas": [c.to_dict() for c in self.contas],
         })
  
@@ -90,8 +63,11 @@ class Banco:
         return candidatos[0] if len(candidatos) == 1 else None
  
     def procurar_agencia(self, codigo):
-        return next((a for a in self.agencias if a.codigo == codigo.strip()), None)
- 
+        if self.agencia.codigo_agencia == str(codigo).strip():
+            return self.agencia
+
+        return None 
+    
     def procurar_conta(self, numero):
         numero = str(numero).strip()
         return next((c for c in self.contas if c.numero_conta == numero), None)
@@ -112,27 +88,24 @@ class Banco:
         self.clientes.append(novo)
         return novo
  
-    def cadastrar_agencia(self, codigo, nome, cidade_estado):
-        nova = Agencia.criar(codigo, nome, cidade_estado)
-        if self.procurar_agencia(nova.codigo):
-            raise ValueError("Já existe uma agência com esse código.")
-        self.agencias.append(nova)
-        return nova
  
-    def cadastrar_conta(self, termo_busca, agencia_cod, numero_conta, tipo):
-        termo_busca, agencia_cod, numero_conta, tipo = (
-            t.strip() for t in (termo_busca, agencia_cod, numero_conta, tipo)
+    def cadastrar_conta(self, termo_busca, numero_conta, tipo):
+        termo_busca, numero_conta, tipo = (
+            t.strip() for t in (termo_busca, numero_conta, tipo)
         )
-        if not all((termo_busca, agencia_cod, numero_conta, tipo)):
+        if not all((termo_busca, numero_conta, tipo)):
             raise ValueError("Preencha todos os campos da conta.")
  
         cliente = self.procurar_cliente(termo_busca)
         if cliente is None:
             raise ValueError("Cliente não encontrado ou nome ambíguo. Informe o CPF ou o nome completo.")
-        if self.procurar_agencia(agencia_cod) is None:
-            raise ValueError("Agência não encontrada.")
+        
         if self.procurar_conta(numero_conta):
-            raise ValueError("Já existe uma conta com esse número.")
+                    raise ValueError("Já existe uma conta com esse número.")
+        
+        agencia_cod = self.agencia.codigo_agencia
+        
+        
  
         nova = Conta.criar(tipo, numero_conta, agencia_cod, cliente.cpf)
         self.contas.append(nova)

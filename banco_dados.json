@@ -25,28 +25,12 @@
             "numero_telefone": "4345767"
         }
     ],
-    "agencias": [
-        {
+    "agencia": {
             "codigo_agencia": "001",
-            "nome_agencia": "Lagarto",
-            "cidade_estado": "Lagarto Se"
+            "nome_agencia": "MISTER",
+            "cidade_estado": "São Cristovão - Se"
         },
-        {
-            "codigo_agencia": "00045",
-            "nome_agencia": "Aracaju",
-            "cidade_estado": "Aracaju Se"
-        },
-        {
-            "codigo_agencia": "0023",
-            "nome_agencia": "Salgado",
-            "cidade_estado": "Salgado"
-        },
-        {
-            "codigo_agencia": "1003",
-            "nome_agencia": "Estancia",
-            "cidade_estado": "Estancia sergipe"
-        }
-    ],
+
     "contas": [
         {
             "numero_conta": "1001",
@@ -58,23 +42,23 @@
         {
             "numero_conta": "10002",
             "cpf": "057.534.270-65",
-            "agencia_cod": "00045",
+            "agencia_cod": "001",
             "saldo_conta": 0.0,
-            "tipo": "salário"
+            "tipo": "corrente"
         },
         {
             "numero_conta": "10045",
             "cpf": "564.026.890-50",
-            "agencia_cod": "0023",
+            "agencia_cod": "001",
             "saldo_conta": 500000.0,
             "tipo": "poupança"
         },
         {
             "numero_conta": "100003",
             "cpf": "646.093.520-36",
-            "agencia_cod": "1003",
+            "agencia_cod": "001",
             "saldo_conta": 0.0,
-            "tipo": "salário"
+            "tipo": "poupança"
         }
     ]
 }

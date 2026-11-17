@@ -52,7 +52,6 @@ class BancoMisterApp:
             ("/", "inicio", self.inicio, ["GET"]),
             ("/cadastro", "pagina_cadastro", self.pagina_cadastro, ["GET"]),
             ("/cadastrar-cliente", "receber_cadastro_cliente", self.cadastrar_cliente, ["POST"]),
-            ("/cadastrar-agencia", "receber_cadastro_agencia", self.cadastrar_agencia, ["POST"]),
             ("/cadastrar-conta", "cadastrar_conta", self.cadastrar_conta, ["POST"]),
             ("/lista", "pagina_lista", self.pagina_lista, ["GET"]),
             ("/busca", "pagina_busca", self.pagina_busca, ["GET"]),
@@ -69,7 +68,7 @@ class BancoMisterApp:
         return render_template(
             "index.html",
             numero_clientes=len(banco.clientes),
-            numero_agencias=len(banco.agencias),
+            numero_agencias= 1,
             numero_contas=len(banco.contas),
             montante_total=indicadores["saldo_total"],
             **indicadores,
@@ -86,19 +85,13 @@ class BancoMisterApp:
             data_nascimento="data_nascimento", numero_telefone="numero_telefone",
         )
 
-    def cadastrar_agencia(self):
-        return self._cadastrar(
-            lambda b: b.cadastrar_agencia,
-            "Agência cadastrada e salva com sucesso!",
-            codigo="codigo_agencia", nome="nome_agencia", cidade_estado="cidade_estado",
-        )
-
     def cadastrar_conta(self):
         return self._cadastrar(
             lambda b: b.cadastrar_conta,
             "Conta cadastrada e salva com sucesso!",
-            termo_busca="termo_busca", agencia_cod="agencia_cod",
-            numero_conta="numero_conta", tipo="tipo",
+            termo_busca="termo_busca",
+            numero_conta="numero_conta", 
+            tipo="tipo",
         )
 
     def pagina_lista(self):
@@ -106,7 +99,7 @@ class BancoMisterApp:
         return render_template(
             "lista.html",
             clientes=[c.to_dict() for c in banco.clientes],
-            agencias=[a.to_dict() for a in banco.agencias],
+            agencias=[banco.agencia.to_dict()],
             contas=[c.to_dict() for c in banco.contas],
         )
 

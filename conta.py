@@ -2,20 +2,14 @@
 import math
 from agencia import Agencia
 from cliente import Cliente
+from abc import ABC
 
 
-class Conta:
+class Conta(ABC):
 
     TIPOS_CONTA = {
         "1": "poupança",
-        "2": "corrente",
-        "3": "salário",
-    }
-
-    OPERACOES_PERMITIDAS = {
-        "poupança": {"sacar", "depositar", "transferir"},
-        "corrente": {"sacar", "depositar", "transferir"},
-        "salário": {"sacar", "depositar"},
+        "2": "corrente"
     }
 
     def __init__(self, numero_conta, cpf, agencia_cod, tipo, saldo_conta=0.0):
