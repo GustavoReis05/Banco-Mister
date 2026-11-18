@@ -1,0 +1,29 @@
+form {
+    margin-bottom: 2rem;
+}
+
+form br {
+    display: none;
+}
+
+form label {
+    display: block;
+    margin-top: 1rem;
+}
+
+form label:first-of-type {
+    margin-top: 0;
+}
+
+form button {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+form:last-of-type button {
+    background-color: var(--success);
+}
+
+form:last-of-type button:hover {
+    background-color: #15803d;
+}

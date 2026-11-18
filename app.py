@@ -1,3 +1,5 @@
+import os
+import signal
 from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -34,7 +36,8 @@ class BancoMisterApp:
         )
 
         self.banco = Banco(self.repositorio)
-
+        self._salvou = False
+        self._encerrando = False
         self._registrar_rotas()
 
     # ---------------------------------------------------------- utilitários
@@ -65,6 +68,7 @@ class BancoMisterApp:
             ("/busca", "pagina_busca", self.pagina_busca, ["GET"]),
             ("/operacoes", "pagina_operacoes", self.pagina_operacoes, ["GET", "POST"]),
             ("/min_max_saldo", "pagina_extremos_saldos", self.pagina_extremos_saldos, ["GET"]),
+            ("/sair", "sair", self.sair, ["POST"]),
         ]
         for caminho, endpoint, view, metodos in rotas:
             self.flask.add_url_rule(caminho, endpoint, view, methods=metodos)
@@ -76,7 +80,7 @@ class BancoMisterApp:
         return render_template(
             "index.html",
             numero_clientes=len(banco.clientes),
-            numero_agencias= 1,
+            numero_agencias=1,
             numero_contas=len(banco.contas),
             montante_total=indicadores["saldo_total"],
             **indicadores,
@@ -88,7 +92,7 @@ class BancoMisterApp:
     def cadastrar_cliente(self):
         return self._cadastrar(
             lambda b: b.cadastrar_cliente,
-            "Cliente cadastrado e salvo com sucesso!",
+            "Cliente cadastrado com sucesso!",
             cpf="cpf", nome="nome",
             data_nascimento="data_nascimento", numero_telefone="numero_telefone",
         )
@@ -96,7 +100,7 @@ class BancoMisterApp:
     def cadastrar_conta(self):
         return self._cadastrar(
             lambda b: b.cadastrar_conta,
-            "Conta cadastrada e salva com sucesso!",
+            "Conta cadastrada com sucesso!",
             termo_busca="termo_busca",
             numero_conta="numero_conta", 
             tipo="tipo",
@@ -159,12 +163,22 @@ class BancoMisterApp:
             **banco.extremos_saldos(),
         )
 
+    def sair(self):
+        if not self._salvou:
+            self.banco.salvar()
+            self._salvou = True
+
+        self._encerrando = True
+
+        return render_template("encerramento.html")
+
     def executar(self, **kwargs):
         try:
             self.flask.run(**kwargs)
         finally:
-            self.banco.salvar()
-
+            if not self._salvou:
+                self.banco.salvar()
+                self._salvou = True
 
 aplicacao = BancoMisterApp()
 app = aplicacao.flask

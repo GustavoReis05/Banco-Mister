@@ -2,64 +2,65 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Busca - Banco Mister</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/buscar.css') }}">
+    <title>Banco Mister - Busca</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='busca.css') }}">
 </head>
 <body>
-    <header>
-        <h1>BANCO MISTER</h1>
-        <p>Sistema de Gerenciamento Bancário</p>
-    </header>
+    <nav>
+        <a href="{{ url_for('inicio') }}">Início</a> |
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastros</a> |
+        <a href="{{ url_for('pagina_lista') }}">Listagem</a> |
+        <a href="{{ url_for('pagina_busca') }}">Busca</a> |
+        <a href="{{ url_for('pagina_operacoes') }}">Operações</a> |
+        <a href="{{ url_for('pagina_extremos_saldos') }}">Extremos de Saldo</a>
+    </nav>
     <hr>
-    <main>
-        <h2>Buscar cadastros</h2>
-        <form action="{{ url_for('pagina_busca') }}" method="get">
-            <p>
-                <label for="tipo">Buscar</label>
-                <select id="tipo" name="tipo">
-                    <option value="cliente" {% if tipo == 'cliente' %}selected{% endif %}>Cliente — CPF ou nome</option>
-                    <option value="agencia" {% if tipo == 'agencia' %}selected{% endif %}>Agência — código</option>
-                    <option value="conta" {% if tipo == 'conta' %}selected{% endif %}>Conta — número</option>
-                </select>
-            </p>
-            <p>
-                <label for="termo">Informe o termo de busca:</label>
-                <input type="text" id="termo" name="termo" value="{{ termo }}" required>
-            </p>
-            <button type="submit">Buscar</button>
-            <a href="{{ url_for('pagina_busca') }}">Limpar busca</a>
-        </form>
 
-        {% if mensagem %}
-        <p role="status">{{ mensagem }}</p>
-        {% endif %}
+    <h1>Consultar Registros</h1>
 
-        {% if resultado %}
-        <section aria-labelledby="titulo-resultado">
-            <h3 id="titulo-resultado">Resultado da busca</h3>
-            <dl>
-                {% if tipo == 'cliente' %}
-                <dt>CPF</dt><dd>{{ resultado.cpf }}</dd>
-                <dt>Nome</dt><dd>{{ resultado.nome }}</dd>
-                <dt>Data de nascimento</dt><dd>{{ resultado.data_nascimento }}</dd>
-                <dt>Telefone</dt><dd>{{ resultado.numero_telefone }}</dd>
-                {% elif tipo == 'agencia' %}
-                <dt>Código</dt><dd>{{ resultado.codigo_agencia }}</dd>
-                <dt>Nome</dt><dd>{{ resultado.nome_agencia }}</dd>
-                <dt>Cidade e estado</dt><dd>{{ resultado.cidade_estado }}</dd>
-                {% else %}
-                <dt>Número da conta</dt><dd>{{ resultado.numero_conta }}</dd>
-                <dt>CPF do titular</dt><dd>{{ resultado.cpf }}</dd>
-                <dt>Código da agência</dt><dd>{{ resultado.agencia_cod }}</dd>
-                <dt>Tipo</dt><dd>{{ resultado.tipo|capitalize }}</dd>
-                <dt>Saldo</dt><dd>R$ {{ "{:,.2f}".format(resultado.saldo_conta).replace(",", "_").replace(".", ",").replace("_", ".") }}</dd>
-                {% endif %}
-            </dl>
-        </section>
+    <form action="{{ url_for('pagina_busca') }}" method="GET">
+        <label>Buscar por:</label>
+        <select name="tipo">
+            <option value="cliente" {% if tipo == 'cliente' %}selected{% endif %}>Cliente (CPF ou Nome)</option>
+            <option value="conta" {% if tipo == 'conta' %}selected{% endif %}>Conta (Número)</option>
+            <option value="agencia" {% if tipo == 'agencia' %}selected{% endif %}>Agência (Código)</option>
+        </select>
+
+        <input type="text" name="termo" value="{{ termo }}" placeholder="Digite o termo de busca" required>
+        <button type="submit">Pesquisar</button>
+    </form>
+
+    <br>
+
+    {% if mensagem %}
+        <p><strong>{{ mensagem }}</strong></p>
+    {% endif %}
+
+    {% if resultado %}
+        <h3>Resultado Encontrado</h3>
+        {% if tipo == 'cliente' %}
+            <ul>
+                <li><strong>CPF:</strong> {{ resultado.cpf }}</li>
+                <li><strong>Nome:</strong> {{ resultado.nome }}</li>
+                <li><strong>Data de Nascimento:</strong> {{ resultado.data_nascimento }}</li>
+                <li><strong>Telefone:</strong> {{ resultado.numero_telefone }}</li>
+            </ul>
+        {% elif tipo == 'conta' %}
+            <ul>
+                <li><strong>Número da Conta:</strong> {{ resultado.numero_conta }}</li>
+                <li><strong>Agência:</strong> {{ resultado.agencia_cod }}</li>
+                <li><strong>CPF do Titular:</strong> {{ resultado.cpf }}</li>
+                <li><strong>Tipo:</strong> {{ resultado.tipo|capitalize }}</li>
+                <li><strong>Saldo:</strong> R$ {{ "%.2f"|format(resultado.saldo_conta) }}</li>
+            </ul>
+        {% elif tipo == 'agencia' %}
+            <ul>
+                <li><strong>Código:</strong> {{ resultado.codigo_agencia }}</li>
+                <li><strong>Nome:</strong> {{ resultado.nome_agencia }}</li>
+                <li><strong>Cidade/Estado:</strong> {{ resultado.cidade_estado }}</li>
+            </ul>
         {% endif %}
-    </main>
-    <hr>
-    <footer><a href="{{ url_for('inicio') }}">Voltar ao Menu Principal</a></footer>
+    {% endif %}
 </body>
 </html>

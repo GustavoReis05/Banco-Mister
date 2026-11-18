@@ -2,78 +2,35 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BANCO MISTER</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <title>Banco Mister - Início</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
-
-    <section aria-labelledby="titulo-dashboard">
-    <h2 id="titulo-dashboard">DASHBOARD</h2>
-
-    <div class="dashboard">
-        <article class="indicador">
-            <h3>Contas</h3>
-            <p class="indicador-valor">{{ numero_contas }}</p>
-        </article>
-
-        <article class="indicador">
-            <h3>Clientes</h3>
-            <p class="indicador-valor">{{ numero_clientes }}</p>
-        </article>
-
-        <article class="indicador">
-            <h3>Agências</h3>
-            <p class="indicador-valor">{{ numero_agencias }}</p>
-        </article>
-
-        {% for titulo, valor in [
-            ('Montante total do banco', montante_total),
-            ('Maior saldo', maior_saldo),
-            ('Saldo médio por conta', saldo_medio)
-        ] %}
-        <article class="indicador indicador-montante">
-            <h3>{{ titulo }}</h3>
-            <p class="indicador-valor">
-                R$ {{ "{:,.2f}".format(valor)
-                    .replace(",", "_")
-                    .replace(".", ",")
-                    .replace("_", ".") }}
-            </p>
-        </article>
-        {% endfor %}
-    </div>
-</section>
-
-    <header>
-    <h1>
-        BANCO MISTER
-    </h1>
-
-    <P>
-        Solução para gestão e processamento bancário simplificado, com foco em segurança, consistência transacional e regras de negócio essenciais.
-    </P>
-    </header>
-
+    <nav>
+        <a href="{{ url_for('inicio') }}">Início</a> |
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastros</a> |
+        <a href="{{ url_for('pagina_lista') }}">Listagem</a> |
+        <a href="{{ url_for('pagina_busca') }}">Busca</a> |
+        <a href="{{ url_for('pagina_operacoes') }}">Operações</a> |
+        <a href="{{ url_for('pagina_extremos_saldos') }}">Extremos de Saldo</a>
+    </nav>
     <hr>
 
-    <main>
-        <h2>
-            Menu principal:
-        </h2>
+    <h1>🏦 Banco Mister - Painel Geral</h1>
 
-        <nav>
-            <ul>
-                <li><a href="/cadastro">1 - Cadastrar (Cliente, Conta e Agencia)</a></li>
-                <li><a href="/busca">2 - Buscar</a></li>
-                <li><a href="/lista">3 - Listar</a></li>
-                <li><a href="/operacoes">4 - Operações</a></li>
-                <li><a href="{{ url_for('pagina_extremos_saldos') }}">5 - Consultar menor e maior saldo</a></li>
-            </ul>
-        </nav>
-    </main>
+    <ul>
+        <li><strong>Agências ativas:</strong> {{ numero_agencias }}</li>
+        <li><strong>Clientes cadastrados:</strong> {{ numero_clientes }}</li>
+        <li><strong>Contas abertas:</strong> {{ numero_contas }}</li>
+        <li><strong>Montante total em custódia:</strong> R$ {{ "%.2f"|format(saldo_total) }}</li>
+        <li><strong>Maior saldo registrado:</strong> R$ {{ "%.2f"|format(maior_saldo) }}</li>
+        <li><strong>Saldo médio por conta:</strong> R$ {{ "%.2f"|format(saldo_medio) }}</li>
+    </ul>
 
-    
+    <form class="form-sair" action="{{ url_for('sair') }}" method="POST">
+        <p>Deseja gravar todas as alterações no banco de dados e encerrar o sistema?</p>
+        <button type="submit" class="btn-sair">Salvar Dados e Sair</button>
+    </form>
 </body>
 </html>

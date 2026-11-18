@@ -1,0 +1,60 @@
+body > ul:last-of-type {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    padding: 0 1rem;
+    background: transparent;
+    border: none;
+}
+
+body > ul:last-of-type li {
+    background: var(--surface);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+body > ul:last-of-type li strong {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+body > ul:last-of-type li:nth-child(4) {
+    border-top-color: var(--success);
+    color: var(--success);
+}
+
+.form-sair {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-left: 5px solid #dc2626;
+}
+
+.form-sair p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.btn-sair {
+    background-color: #dc2626;
+}
+
+.btn-sair:hover {
+    background-color: #b91c1c;
+}

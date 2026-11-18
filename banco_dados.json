@@ -26,11 +26,10 @@
         }
     ],
     "agencia": {
-            "codigo_agencia": "001",
-            "nome_agencia": "MISTER",
-            "cidade_estado": "São Cristovão - Se"
-        },
-
+        "codigo_agencia": "001",
+        "nome_agencia": "MISTER",
+        "cidade_estado": "São Cristovão - Se"
+    },
     "contas": [
         {
             "numero_conta": "1001",

@@ -2,137 +2,67 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Banco Mister</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
+    <title>Banco Mister - Cadastros</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='cadastro.css') }}">
 </head>
 <body>
+    <nav>
+        <a href="{{ url_for('inicio') }}">Início</a> |
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastros</a> |
+        <a href="{{ url_for('pagina_lista') }}">Listagem</a> |
+        <a href="{{ url_for('pagina_busca') }}">Busca</a> |
+        <a href="{{ url_for('pagina_operacoes') }}">Operações</a> |
+        <a href="{{ url_for('pagina_extremos_saldos') }}">Extremos de Saldo</a>
+    </nav>
+    <hr>
 
-    <header>
-        <h1>BANCO MISTER</h1>
-        <p>Sistema de Gerenciamento Bancário</p>
-    </header>
+    <h1>Cadastros</h1>
+
+    {% with mensagens = get_flashed_messages() %}
+        {% if mensagens %}
+            <ul>
+                {% for msg in mensagens %}
+                    <li><strong>{{ msg }}</strong></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <h2>Novo Cliente</h2>
+    <form action="{{ url_for('receber_cadastro_cliente') }}" method="POST">
+        <label>CPF:</label><br>
+        <input type="text" name="cpf" placeholder="000.000.000-00" required><br><br>
+
+        <label>Nome Completo:</label><br>
+        <input type="text" name="nome" required><br><br>
+
+        <label>Data de Nascimento:</label><br>
+        <input type="date" name="data_nascimento" required><br><br>
+
+        <label>Telefone:</label><br>
+        <input type="text" name="numero_telefone" required><br><br>
+
+        <button type="submit">Cadastrar Cliente</button>
+    </form>
 
     <hr>
 
-    <main>
-        <h2>Cadastros</h2>
+    <h2>Nova Conta</h2>
+    <form action="{{ url_for('cadastrar_conta') }}" method="POST">
+        <label>Cliente (CPF ou Nome):</label><br>
+        <input type="text" name="termo_busca" placeholder="Digite o CPF ou nome do titular" required><br><br>
 
-        {% with mensagens = get_flashed_messages() %}
-            {% if mensagens %}
-                <div role="status">
-                    {% for mensagem in mensagens %}
-                        <p>{{ mensagem }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+        <label>Número da Conta:</label><br>
+        <input type="text" name="numero_conta" required><br><br>
 
-        <!-- CADASTRO DE CLIENTE -->
-        <section id="cadastro-cliente">
-            <h3>Cadastro de Cliente</h3>
+        <label>Tipo de Conta:</label><br>
+        <select name="tipo" required>
+            <option value="corrente">Conta Corrente</option>
+            <option value="poupança">Conta Poupança</option>
+        </select><br><br>
 
-            <form action="/cadastrar-cliente" method="post">
-                <p>
-                    <label for="cpf">CPF:</label>
-                    <input
-                        type="text"
-                        id="cpf"
-                        name="cpf"
-                        placeholder="000.000.000-00"
-                        maxlength="14"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label for="nome">Nome completo:</label>
-                    <input
-                        type="text"
-                        id="nome"
-                        name="nome"
-                        autocomplete="name"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label for="nascimento">Data de nascimento:</label>
-                    <input
-                        type="date"
-                        id="nascimento"
-                        name="data_nascimento"
-                        autocomplete="bday"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label for="telefone">Telefone:</label>
-                    <input
-                        type="tel"
-                        id="telefone"
-                        name="numero_telefone"
-                        placeholder="(00) 00000-0000"
-                        autocomplete="tel"
-                        required
-                    >
-                </p>
-
-                <button type="submit">Cadastrar Cliente</button>
-                <button type="reset">Limpar</button>
-            </form>
-        </section>
-
-        <hr>
-       
-
-        <!-- CADASTRO DE CONTA -->
-        <section id="cadastro-conta">
-            <h3>Cadastro de Conta</h3>
-            <p>O cliente e a agência devem estar cadastrados.</p>
-
-            <form action="/cadastrar-conta" method="post">
-                <p>
-                    <label for="cliente-conta">CPF ou nome do cliente:</label>
-                    <input
-                        type="text"
-                        id="cliente-conta"
-                        name="termo_busca"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label for="numero-conta">Número da conta:</label>
-                    <input
-                        type="text"
-                        id="numero-conta"
-                        name="numero_conta"
-                        required
-                    >
-                </p>
-
-                <p>
-                    <label for="tipo-conta">Tipo de conta:</label>
-                    <select id="tipo-conta" name="tipo" required>
-                        <option value="">Selecione</option>
-                        <option value="poupança">Poupança</option>
-                        <option value="corrente">Corrente</option>
-                    </select>
-                </p>
-
-                <button type="submit">Cadastrar Conta</button>
-                <button type="reset">Limpar</button>
-            </form>
-        </section>
-    </main>
-
-    <hr>
-
-    <footer>
-        <a href="/">Voltar ao Menu Principal</a>
-    </footer>
-
+        <button type="submit">Abrir Conta</button>
+    </form>
 </body>
 </html>

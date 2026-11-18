@@ -1,8 +1,42 @@
-
 import math
-from agencia import Agencia
-from cliente import Cliente
-from abc import ABC
+import unicodedata
+from abc import ABC, abstractmethod
+
+
+def normalizar(texto):
+    texto = unicodedata.normalize(
+        "NFD",
+        str(texto).strip().lower()
+    )
+
+    return "".join(
+        c for c in texto
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def validar_valor_operacao(valor):
+    """Valida o valor informado para operações bancárias."""
+    try:
+        valor = float(
+            str(valor).strip().replace(",", ".")
+        )
+    except (TypeError, ValueError):
+        raise ValueError(
+            "Valor inválido! Digite apenas números."
+        )
+
+    if not math.isfinite(valor) or valor <= 0:
+        raise ValueError(
+            "O valor deve ser finito e maior que zero."
+        )
+
+    if round(valor, 2) != valor:
+        raise ValueError(
+            "Informe um valor com no máximo duas casas decimais."
+        )
+
+    return valor
 
 
 class Conta(ABC):
@@ -12,86 +46,79 @@ class Conta(ABC):
         "2": "corrente",
     }
 
-    def __init__(self, numero_conta, cpf, agencia_cod, tipo, saldo_conta=0.0):
+    @property
+    @abstractmethod
+    def tipo(self):
+        """Retorna o tipo da conta."""
+        pass
 
+    def __init__(self, numero_conta, cpf, agencia_cod, saldo_conta=0.0):
         self.numero_conta = str(numero_conta).strip()
         self.cpf = str(cpf).strip()
         self.agencia_cod = str(agencia_cod).strip()
-        self.tipo = str(tipo).strip()
         self.saldo_conta = float(saldo_conta)
 
         if not all((
             self.numero_conta,
             self.cpf,
-            self.agencia_cod,
-            self.tipo
+            self.agencia_cod
         )):
             raise ValueError("Preencha todos os campos da conta.")
-
-        if self.tipo not in self.TIPOS_CONTA.values():
-            raise ValueError("Tipo de conta inválido.")
 
         if not math.isfinite(self.saldo_conta) or self.saldo_conta < 0:
             raise ValueError("Saldo inicial inválido.")
 
-    # ---------- Cadastro ----------
+    @property
+    def saldo(self):
+        return self.saldo_conta
 
-    @staticmethod
-    def cadastrar(
-        lista_clientes,
-        lista_agencias,
-        lista_contas,
-        termo_busca,
-        agencia_cod,
-        numero_conta,
-        tipo
-    ):
-        """Cadastra uma nova conta."""
+    @classmethod
+    def criar(cls, tipo, numero_conta, agencia_cod, cpf):
+        tipo_normalizado = normalizar(tipo)
 
-        termo_busca, agencia_cod, numero_conta, tipo = map(
-            str.strip,
-            (termo_busca, agencia_cod, numero_conta, tipo)
-        )
-
-        if not all((termo_busca, agencia_cod, numero_conta, tipo)):
-            raise ValueError("Preencha todos os campos da conta.")
-
-        cliente = Cliente.procurar(lista_clientes, termo_busca)
-
-        if not cliente:
-            raise ValueError(
-                "Cliente não encontrado ou nome ambíguo. "
-                "Informe o CPF ou o nome completo."
-            )
-
-        agencia = Agencia.buscar_por_codigo(lista_agencias, agencia_cod)
-
-        if not agencia:
-            raise ValueError("Agência não encontrada.")
-
-        if Conta.buscar_por_numero(lista_contas, numero_conta):
-            raise ValueError("Já existe uma conta com esse número.")
-
-        if tipo not in Conta.TIPOS_CONTA.values():
+        if tipo_normalizado in ("1", "poupanca"):
+            return ContaPoupanca(numero_conta, cpf, agencia_cod)
+        elif tipo_normalizado in ("2", "corrente"):
+            return ContaCorrente(numero_conta, cpf, agencia_cod)
+        else:
             raise ValueError("Tipo de conta inválido.")
 
-        nova_conta = Conta(
-            numero_conta,
-            cliente.cpf,
-            agencia_cod,
-            tipo
-        )
+    @classmethod
+    def from_dict(cls, dados):
+        tipo_normalizado = normalizar(dados.get("tipo", ""))
+        saldo = dados.get("saldo_conta", 0.0)
 
-        lista_contas.append(nova_conta)
+        if tipo_normalizado == "poupanca":
+            return ContaPoupanca(
+                dados["numero_conta"],
+                dados["cpf"],
+                dados["agencia_cod"],
+                saldo
+            )
+        elif tipo_normalizado == "corrente":
+            return ContaCorrente(
+                dados["numero_conta"],
+                dados["cpf"],
+                dados["agencia_cod"],
+                saldo
+            )
+        else:
+            raise ValueError("Tipo de conta inválido no banco de dados.")
 
-        return nova_conta
+    def to_dict(self):
+        return {
+            "numero_conta": self.numero_conta,
+            "cpf": self.cpf,
+            "agencia_cod": self.agencia_cod,
+            "saldo_conta": self.saldo_conta,
+            "tipo": self.tipo
+        }
 
     # ---------- Busca e listagem ----------
 
     @staticmethod
     def buscar_por_numero(lista_contas, numero):
         """Busca uma conta pelo número."""
-
         numero = str(numero).strip()
 
         for conta in lista_contas:
@@ -103,7 +130,6 @@ class Conta(ABC):
     @staticmethod
     def listar(lista_contas, filtro=None):
         """Lista as contas, permitindo aplicar filtros."""
-
         if filtro is None:
             return lista_contas
 
@@ -112,49 +138,6 @@ class Conta(ABC):
             if filtro(conta)
         ]
 
-    # ---------- Validações ----------
-
-    def operacao_permitida(self, operacao):
-        """Verifica se o tipo da conta permite a operação."""
-
-        return operacao in self.OPERACOES_PERMITIDAS.get(
-            self.tipo, set()
-        )
-
-    def validar_operacao(self, operacao):
-        """Verifica se a conta pode realizar a operação."""
-
-        if not self.operacao_permitida(operacao):
-            raise ValueError(
-                f"A conta {self.numero_conta} ({self.tipo}) "
-                f"não pode realizar: {operacao}."
-            )
-
-    @staticmethod
-    def validar_valor_operacao(valor):
-        """Valida o valor informado para operações bancárias."""
-
-        try:
-            valor = float(
-                str(valor).strip().replace(",", ".")
-            )
-        except (TypeError, ValueError):
-            raise ValueError(
-                "Valor inválido! Digite apenas números."
-            )
-
-        if not math.isfinite(valor) or valor <= 0:
-            raise ValueError(
-                "O valor deve ser finito e maior que zero."
-            )
-
-        if round(valor, 2) != valor:
-            raise ValueError(
-                "Informe um valor com no máximo duas casas decimais."
-            )
-
-        return valor
-
     @staticmethod
     def validar_saldo_finito(saldo, mensagem):
         if not math.isfinite(saldo):
@@ -162,14 +145,17 @@ class Conta(ABC):
 
         return saldo
 
+    def validar_destino(self, destino):
+        if self.numero_conta == destino.numero_conta:
+            raise ValueError(
+                "A conta de origem e a de destino devem ser diferentes."
+            )
+
     # ---------- Operações bancárias ----------
 
     def sacar(self, valor):
         """Realiza um saque na conta."""
-
-        self.validar_operacao("sacar")
-
-        valor = self.validar_valor_operacao(valor)
+        valor = validar_valor_operacao(valor)
 
         if valor > self.saldo_conta:
             raise ValueError("Saldo insuficiente.")
@@ -182,10 +168,7 @@ class Conta(ABC):
 
     def depositar(self, valor):
         """Realiza um depósito na conta."""
-
-        self.validar_operacao("depositar")
-
-        valor = self.validar_valor_operacao(valor)
+        valor = validar_valor_operacao(valor)
 
         novo_saldo = self.validar_saldo_finito(
             round(self.saldo_conta + valor, 2),
@@ -196,24 +179,10 @@ class Conta(ABC):
 
         return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
 
-    def transferir(self, lista_contas, numero_destino, valor):
+    def transferir(self, destino, valor):
         """Transfere dinheiro para outra conta."""
-
-        self.validar_operacao("transferir")
-
-        destino = Conta.buscar_por_numero(
-            lista_contas, numero_destino
-        )
-
-        if destino is None:
-            raise ValueError("Conta de destino não encontrada!")
-
-        if self.numero_conta == destino.numero_conta:
-            raise ValueError(
-                "A conta de origem e a de destino devem ser diferentes."
-            )
-
-        valor = self.validar_valor_operacao(valor)
+        self.validar_destino(destino)
+        valor = validar_valor_operacao(valor)
 
         if valor > self.saldo_conta:
             raise ValueError("Saldo insuficiente.")
@@ -237,7 +206,6 @@ class Conta(ABC):
     @staticmethod
     def somar_saldos(lista_contas):
         """Soma os saldos de todas as contas."""
-
         return sum(
             (conta.saldo_conta for conta in lista_contas),
             0.0
@@ -246,7 +214,6 @@ class Conta(ABC):
     @staticmethod
     def encontrar_menor_maior_saldo(lista_contas):
         """Retorna o menor e o maior saldo das contas."""
-
         saldos = [
             conta.saldo_conta for conta in lista_contas
         ]
@@ -259,7 +226,6 @@ class Conta(ABC):
     @staticmethod
     def calcular_indicadores_saldos(lista_contas):
         """Calcula os indicadores para o dashboard."""
-
         saldos = [
             conta.saldo_conta for conta in lista_contas
         ]
@@ -281,3 +247,27 @@ class Conta(ABC):
             f"Saldo: R$ {self.saldo_conta:.2f}"
         )
 
+
+class ContaCorrente(Conta):
+
+    def __init__(self, numero_conta, cpf, agencia_cod, saldo_conta=0.0):
+        super().__init__(numero_conta, cpf, agencia_cod, saldo_conta)
+
+    @property
+    def tipo(self):
+        return "corrente"
+
+
+class ContaPoupanca(Conta):
+
+    TAXA_ANUAL = 0.1375
+
+    def __init__(self, numero_conta, cpf, agencia_cod, saldo_conta=0.0):
+        super().__init__(numero_conta, cpf, agencia_cod, saldo_conta)
+
+    @property
+    def tipo(self):
+        return "poupança"
+
+    def aplicar_rendimento(self):
+        self.saldo_conta = round(self.saldo_conta * (1 + self.TAXA_ANUAL), 2)

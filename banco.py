@@ -2,7 +2,8 @@
 import json
 from pathlib import Path
 from agencia import Agencia
-from modelos import Cliente, Conta, apenas_digitos, validar_valor_operacao
+from cliente import Cliente
+from conta import Conta, validar_valor_operacao
  
  
 class RepositorioJSON:
@@ -72,19 +73,21 @@ class Banco:
         numero = str(numero).strip()
         return next((c for c in self.contas if c.numero_conta == numero), None)
  
-    def _conta_para(self, numero, operacao):
-        """Conta existente cujo tipo permite a operação."""
+    def _conta_para(self, numero):
         conta = self.procurar_conta(numero)
+
         if conta is None:
             raise ValueError("Conta não encontrada!")
-        conta.validar_operacao(operacao)
+
         return conta
  
     # ----------------------------------------------------------- cadastros
     def cadastrar_cliente(self, cpf, nome, data_nascimento, numero_telefone):
         novo = Cliente.criar(cpf, nome, data_nascimento, numero_telefone)
-        if any(apenas_digitos(c.cpf) == apenas_digitos(novo.cpf) for c in self.clientes):
+
+        if any(Cliente.somente_digitos(c.cpf)== Cliente.somente_digitos(novo.cpf) for c in self.clientes):
             raise ValueError("Já existe um cliente com esse CPF.")
+
         self.clientes.append(novo)
         return novo
  
@@ -113,25 +116,29 @@ class Banco:
  
     # ----------------------------------------------------------- operações
     def sacar(self, numero_conta, valor):
-        conta = self._conta_para(numero_conta, "sacar")
+        conta = self._conta_para(numero_conta)
         valor = validar_valor_operacao(valor)
         conta.sacar(valor)
         return f"Saque de R$ {valor:.2f} realizado com sucesso!"
  
     def depositar(self, numero_conta, valor):
-        conta = self._conta_para(numero_conta, "depositar")
+        conta = self._conta_para(numero_conta)
         valor = validar_valor_operacao(valor)
         conta.depositar(valor)
         return f"Depósito de R$ {valor:.2f} realizado com sucesso!"
+
  
     def transferir(self, numero_origem, numero_destino, valor):
-        origem = self._conta_para(numero_origem, "transferir")
+        origem = self._conta_para(numero_origem)
         destino = self.procurar_conta(numero_destino)
+
         if destino is None:
             raise ValueError("Conta de destino não encontrada!")
+
         origem.validar_destino(destino)
         valor = validar_valor_operacao(valor)
         origem.transferir(destino, valor)
+
         return "Transferência realizada com sucesso!"
  
     # ---------------------------------------------------------- indicadores

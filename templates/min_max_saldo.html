@@ -2,53 +2,30 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Menor e maior saldo - Banco Mister</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    >
+    <title>Banco Mister - Extremos de Saldo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='min_max_saldo.css') }}">
 </head>
 <body>
-    <header>
-        <h1>BANCO MISTER</h1>
-        <p>Consulta de saldos</p>
-    </header>
+    <nav>
+        <a href="{{ url_for('inicio') }}">Início</a> |
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastros</a> |
+        <a href="{{ url_for('pagina_lista') }}">Listagem</a> |
+        <a href="{{ url_for('pagina_busca') }}">Busca</a> |
+        <a href="{{ url_for('pagina_operacoes') }}">Operações</a> |
+        <a href="{{ url_for('pagina_extremos_saldos') }}">Extremos de Saldo</a>
+    </nav>
+    <hr>
 
-    <main>
-        <section aria-labelledby="titulo-saldos">
-            <h2 id="titulo-saldos">Menor e maior saldo</h2>
+    <h1>Menor e Maior Saldo</h1>
 
-            {% if possui_contas %}
-                <div class="dashboard">
-                    {% for titulo, valor in [
-                        ('Menor saldo', menor_saldo),
-                        ('Maior saldo', maior_saldo)
-                    ] %}
-                    <article class="indicador indicador-montante">
-                        <h3>{{ titulo }}</h3>
-
-                        <p class="indicador-valor">
-                            R$ {{ "{:,.2f}".format(valor)
-                                .replace(",", "_")
-                                .replace(".", ",")
-                                .replace("_", ".") }}
-                        </p>
-                    </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>Nenhuma conta cadastrada.</p>
-            {% endif %}
-        </section>
-    </main>
-
-    <footer>
-        <a href="{{ url_for('inicio') }}">
-            Voltar ao Menu Principal
-        </a>
-    </footer>
+    {% if possui_contas %}
+        <ul>
+            <li><strong>Maior Saldo:</strong> R$ {{ "%.2f"|format(maior_saldo) }}</li>
+            <li><strong>Menor Saldo:</strong> R$ {{ "%.2f"|format(menor_saldo) }}</li>
+        </ul>
+    {% else %}
+        <p>Não há contas cadastradas no momento para calcular os extremos de saldo.</p>
+    {% endif %}
 </body>
 </html>

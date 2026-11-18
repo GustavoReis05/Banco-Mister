@@ -50,6 +50,35 @@ class Cliente:
             dados["numero_telefone"]
         )
 
+    @classmethod
+    def criar(cls, cpf, nome, data_nascimento, numero_telefone):
+        return cls(
+            cpf,
+            nome,
+            data_nascimento,
+            numero_telefone
+        )
+    def corresponde_exato(self, termo):
+        termo = str(termo).strip().lower()
+
+        cpf_informado = self.somente_digitos(termo)
+        cpf_cliente = self.somente_digitos(self.cpf)
+
+        return (
+            cpf_informado == cpf_cliente
+            or self.nome.lower() == termo
+        )
+
+
+    def corresponde_parcial(self, termo):
+        termo = str(termo).strip().lower()
+
+        if not termo:
+            return False
+
+        return termo in self.nome.lower()
+
+    
     @staticmethod
     def somente_digitos(texto):
         """Remove tudo que não for número."""
@@ -95,30 +124,6 @@ class Cliente:
             Cliente.digito_verificador(numeros, p) == int(numeros[p])
             for p in (9, 10)
         )
-
-    @staticmethod
-    def cadastrar(lista_clientes, cpf, nome, data_nascimento, numero_telefone):
-        """Cadastra um novo cliente."""
-
-        if not Cliente.validar_cpf(cpf):
-            raise ValueError("CPF inválido.")
-
-        cpf_digitos = Cliente.somente_digitos(cpf)
-
-        for cliente in lista_clientes:
-            if Cliente.somente_digitos(cliente.cpf) == cpf_digitos:
-                raise ValueError("Já existe um cliente com esse CPF.")
-
-        novo_cliente = Cliente(
-            cpf,
-            nome,
-            data_nascimento,
-            numero_telefone
-        )
-
-        lista_clientes.append(novo_cliente)
-
-        return novo_cliente
 
     @staticmethod
     def procurar(lista_clientes, termo_busca, exibir=True):

@@ -2,48 +2,51 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operações - Banco Mister</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/operacoes.css') }}">
+    <title>Banco Mister - Operações</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='operacoes.css') }}">
 </head>
 <body>
-    <header>
-        <h1>BANCO MISTER</h1>
-        <p>Sistema de Gerenciamento Bancário</p>
-    </header>
+    <nav>
+        <a href="{{ url_for('inicio') }}">Início</a> |
+        <a href="{{ url_for('pagina_cadastro') }}">Cadastros</a> |
+        <a href="{{ url_for('pagina_lista') }}">Listagem</a> |
+        <a href="{{ url_for('pagina_busca') }}">Busca</a> |
+        <a href="{{ url_for('pagina_operacoes') }}">Operações</a> |
+        <a href="{{ url_for('pagina_extremos_saldos') }}">Extremos de Saldo</a>
+    </nav>
     <hr>
-    <main>
-        <h2>Operações bancárias</h2>
-        {% with mensagens = get_flashed_messages() %}
-            {% for mensagem in mensagens %}
-            <p role="status">{{ mensagem }}</p>
-            {% endfor %}
-        {% endwith %}
-        {% for operacao, titulo in [('sacar', 'Saque'), ('depositar', 'Depósito'), ('transferir', 'Transferência')] %}
-        <section>
-            <h3>{{ titulo }}</h3>
-            <form action="{{ url_for('pagina_operacoes') }}" method="post">
-                <input type="hidden" name="operacao" value="{{ operacao }}">
-                <p>
-                    <label for="conta-{{ operacao }}">{% if operacao == 'transferir' %}Conta de origem:{% else %}Número da conta:{% endif %}</label>
-                    <input type="text" id="conta-{{ operacao }}" name="numero_conta" required>
-                </p>
-                {% if operacao == 'transferir' %}
-                <p>
-                    <label for="destino">Conta de destino:</label>
-                    <input type="text" id="destino" name="numero_destino" required>
-                </p>
-                {% endif %}
-                <p>
-                    <label for="valor-{{ operacao }}">Valor (R$):</label>
-                    <input type="text" inputmode="decimal" id="valor-{{ operacao }}" name="valor" required>
-                </p>
-                <button type="submit">Realizar {{ titulo|lower }}</button>
-            </form>
-        </section>
-        {% endfor %}
-    </main>
-    <hr>
-    <footer><a href="{{ url_for('inicio') }}">Voltar ao Menu Principal</a></footer>
+
+    <h1>Operações Bancárias</h1>
+
+    {% with mensagens = get_flashed_messages() %}
+        {% if mensagens %}
+            <ul>
+                {% for msg in mensagens %}
+                    <li><strong>{{ msg }}</strong></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('pagina_operacoes') }}" method="POST">
+        <label>Operação:</label><br>
+        <select name="operacao" required>
+            <option value="depositar">Depositar</option>
+            <option value="sacar">Sacar</option>
+            <option value="transferir">Transferir</option>
+        </select><br><br>
+
+        <label>Número da Conta (Origem):</label><br>
+        <input type="text" name="numero_conta" required><br><br>
+
+        <label>Número da Conta de Destino (apenas para Transferência):</label><br>
+        <input type="text" name="numero_destino" placeholder="Opcional para saque/depósito"><br><br>
+
+        <label>Valor (R$):</label><br>
+        <input type="text" name="valor" placeholder="Ex: 150.00" required><br><br>
+
+        <button type="submit">Executar Operação</button>
+    </form>
 </body>
 </html>
